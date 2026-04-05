@@ -4,12 +4,38 @@ Ansible Kiro Power – MCP Server
 Provides tools to create, lint, and check Ansible playbooks and roles.
 IMPORTANT: Only stderr for logs, stdout is reserved for JSON-RPC.
 """
-import os, sys, subprocess, textwrap
+import os, sys, subprocess, textwrap, configparser
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 PROJECT_ROOT = Path(os.getenv("ANSIBLE_PROJECT_ROOT", os.getcwd()))
-INVENTORY    = os.getenv("ANSIBLE_INVENTORY", str(PROJECT_ROOT / "inventory" / "hosts.ini"))
+
+def _resolve_inventory() -> Path | None:
+    """Resolve inventory path in order of precedence."""
+    # 1. Explicit env var
+    if env := os.getenv("ANSIBLE_INVENTORY"):
+        return Path(env)
+
+    # 2. ansible.cfg [defaults] inventory
+    cfg_path = PROJECT_ROOT / "ansible.cfg"
+    if cfg_path.exists():
+        cfg = configparser.ConfigParser()
+        cfg.read(cfg_path)
+        if cfg.has_option("defaults", "inventory"):
+            raw = cfg.get("defaults", "inventory").strip()
+            resolved = (PROJECT_ROOT / raw).resolve()
+            if resolved.exists():
+                return resolved
+
+    # 3. Common fallback locations
+    for candidate in ["hosts.yml", "hosts.ini", "inventory/hosts.yml", "inventory/hosts.ini"]:
+        p = PROJECT_ROOT / candidate
+        if p.exists():
+            return p
+
+    return None
+
+INVENTORY = _resolve_inventory()
 
 mcp = FastMCP("ansible-dev")
 
@@ -26,6 +52,20 @@ def _run(cmd: list[str]) -> dict:
         return {"ok": r.returncode == 0, "stdout": r.stdout.strip(), "stderr": r.stderr.strip()}
     except Exception as e:
         return {"ok": False, "stdout": "", "stderr": str(e)}
+
+def _require_inventory() -> tuple[Path | None, dict | None]:
+    """Returns (inventory_path, error_dict). If error_dict is set, return it immediately."""
+    if INVENTORY is None:
+        return None, {
+            "ok": False,
+            "error": (
+                "No inventory found. Provide one via:\n"
+                "  1. ANSIBLE_INVENTORY env var\n"
+                "  2. ansible.cfg [defaults] inventory\n"
+                "  3. hosts.yml or hosts.ini in project root"
+            )
+        }
+    return INVENTORY, None
 
 # ── Scaffold Tools ────────────────────────────────────────────────────────────
 
@@ -277,7 +317,10 @@ def syntax_check(playbook: str) -> dict:
     Args:
         playbook: Relative path to the playbook.
     """
-    return _run(["ansible-playbook", "--syntax-check", "-i", INVENTORY, playbook])
+    inv, err = _require_inventory()
+    if err:
+        return err
+    return _run(["ansible-playbook", "--syntax-check", "-i", str(inv), playbook])
 
 
 @mcp.tool()
@@ -288,7 +331,10 @@ def diff_check(playbook: str, limit: str = None) -> dict:
         playbook: Relative path to the playbook.
         limit:    Optional host limit, e.g. 'webservers' or 'web01.example.com'
     """
-    cmd = ["ansible-playbook", "--check", "--diff", "-i", INVENTORY, playbook]
+    inv, err = _require_inventory()
+    if err:
+        return err
+    cmd = ["ansible-playbook", "--check", "--diff", "-i", str(inv), playbook]
     if limit:
         cmd.extend(["--limit", limit])
     return _run(cmd)
@@ -301,7 +347,10 @@ def gather_facts(host: str) -> dict:
     Args:
         host: Hostname or group from the inventory, e.g. 'web01.example.com' or 'webservers'
     """
-    return _run(["ansible", "-i", INVENTORY, host, "-m", "setup"])
+    inv, err = _require_inventory()
+    if err:
+        return err
+    return _run(["ansible", "-i", str(inv), host, "-m", "setup"])
 
 
 # ── List Tools ────────────────────────────────────────────────────────────────
@@ -341,6 +390,7 @@ def show_role_tree(role_name: str) -> dict:
 # ── Entry Point ───────────────────────────────────────────────────────────────
 def main():
     print(f"[ansible-power] PROJECT_ROOT={PROJECT_ROOT}", file=sys.stderr)
+    print(f"[ansible-power] INVENTORY={INVENTORY or 'not found'}", file=sys.stderr)
     mcp.run(transport="stdio")
 
 
