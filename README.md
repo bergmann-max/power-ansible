@@ -4,7 +4,7 @@ Full Ansible tooling for Kiro: scaffold, lint, syntax-check, and diff playbooks 
 
 ## Installation
 
-### Option A – Install locally (recommended for development)
+### Option A – Install locally
 ```bash
 # Copy the power folder into the Kiro powers directory
 cp -r power-ansible ~/.kiro/powers/installed/ansible
@@ -19,11 +19,14 @@ In Kiro: **Powers Panel → "Import from GitHub"**
 
 ## Prerequisites
 
-Create a virtual environment inside the repo (required for `mcp.json` to work):
+[`uv`](https://docs.astral.sh/uv/) must be installed on the system. It is used to run the MCP server and manages dependencies automatically — no manual venv setup needed.
 
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Arch Linux
+sudo pacman -S uv
 ```
 
 ## Activation
@@ -62,8 +65,10 @@ power-ansible/
 ├── POWER.md                              # Kiro Power Manifest
 ├── mcp.json                              # MCP Server Configuration
 ├── mcp_server.py                         # MCP Server (Python/FastMCP)
-├── requirements.txt                      # Python dependencies
-├── .venv/                                # Local virtualenv (not committed)
+├── pyproject.toml                        # Package definition for uvx
+├── power_ansible/
+│   └── server.py                         # Packaged entry point
+├── requirements.txt                      # Python dependencies (reference)
 ├── hooks/
 │   └── ansible-lint-on-save.kiro.hook   # Auto-lint on file change
 └── steering/

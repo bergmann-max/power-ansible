@@ -1,9 +1,11 @@
 {
   "mcpServers": {
     "ansible-dev": {
-      "command": "${workspaceFolder}/.venv/bin/python3",
+      "command": "uvx",
       "args": [
-        "${workspaceFolder}/mcp_server.py"
+        "--from",
+        "${workspaceFolder}",
+        "power-ansible"
       ],
       "env": {
         "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}",
