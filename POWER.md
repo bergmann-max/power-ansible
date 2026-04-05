@@ -92,4 +92,4 @@ These rules apply to ALL Ansible content generated in this workspace:
 - **Tags** should be added to every play and task for targeted execution
 - **`when` conditions** use Ansible facts or registered variables, never shell commands inline
 - **Loop items** use `loop:` not the deprecated `with_items:`
-- **File permissions** are always explicit: `mode: '0644'`
+- **File permissions** are always explicit and use ugo format: `mode: 'u=rw,g=r,o=r'` — if a party has no permissions at all, use the explicit reset form, e.g. `mode: 'u=rw,g=r,o=-'`

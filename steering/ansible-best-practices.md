@@ -296,6 +296,22 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
 - ansible.builtin.blockinfile: # multi-line block (set marker!)
 ```
 
+#### File Permissions – always use ugo format
+Always set `mode` explicitly using symbolic ugo notation instead of octal (e.g. `'0644'`).
+If a party has no permissions at all, use the explicit reset form with `=-`:
+
+```yaml
+# ✅ Correct – ugo format
+mode: 'u=rw,g=r,o=r'      # equivalent to 0644
+mode: 'u=rwx,g=rx,o=rx'   # equivalent to 0755
+mode: 'u=rw,g=r,o=-'      # other has NO permissions (not o= or omitted)
+mode: 'u=rwx,g=-,o=-'     # only owner has access
+
+# ❌ Wrong – octal format
+mode: '0644'
+mode: '0755'
+```
+
 ### Package / Service
 ```yaml
 - ansible.builtin.package:    # distro-agnostic (preferred)
