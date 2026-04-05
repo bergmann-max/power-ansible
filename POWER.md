@@ -1,6 +1,7 @@
 ---
 name: "ansible"
 displayName: "Ansible Automation"
+author: "Max Bergmann"
 description: "Build, lint, and run Ansible playbooks and roles with best practices, proper structure, and idempotent design patterns"
 keywords: ["ansible", "playbook", "role", "inventory", "task", "handler", "vars", "yaml", "automation", "infrastructure", "idempotent", "hosts", "galaxy", "collections"]
 mcpServers: ["ansible-dev"]

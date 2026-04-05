@@ -1,6 +1,6 @@
 # Kiro Power - Ansible
 
-Full Ansible tooling for Kiro: scaffold, lint, syntax-check, and diff playbooks & roles.
+Build, lint, and run Ansible playbooks and roles with best practices, proper structure, and idempotent design patterns.
 
 ## Prerequisites
 
