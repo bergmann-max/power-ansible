@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "power-ansible"
+name = "ansible-mcp"
 version = "0.1.0"
 description = "Ansible MCP server for Kiro"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-power-ansible = "power_ansible.server:main"
+power-ansible = "ansible_mcp.server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["power_ansible"]
+packages = ["ansible_mcp"]
