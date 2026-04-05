@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "ansible-dev": {
+      "command": "${workspaceFolder}/.venv/bin/python3",
+      "args": [
+        "${workspaceFolder}/mcp_server.py"
+      ],
+      "env": {
+        "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}",
+        "ANSIBLE_INVENTORY": "${workspaceFolder}/inventory/hosts.ini",
+        "ANSIBLE_LINT_PROFILE": "production"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "create_playbook",
+        "create_role",
+        "create_ansible_cfg",
+        "lint_file",
+        "syntax_check",
+        "list_roles",
+        "list_playbooks",
+        "scaffold_inventory"
+      ],
+      "disabledTools": []
+    }
+  }
+}

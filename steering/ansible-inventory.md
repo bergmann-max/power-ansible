@@ -1,0 +1,155 @@
+---
+inclusion: fileMatch
+fileMatch: ["inventory/**", "group_vars/**", "host_vars/**"]
+---
+
+# Ansible Inventory Conventions
+
+## Recommended Structure: YAML instead of INI (for larger projects)
+
+```yaml
+# inventory/hosts.yml
+---
+all:
+  children:
+    webservers:
+      hosts:
+        web01.example.com:
+          ansible_host: 10.0.1.10
+        web02.example.com:
+          ansible_host: 10.0.1.11
+    dbservers:
+      hosts:
+        db01.example.com:
+          ansible_host: 10.0.2.10
+
+    # Environment groups
+    production:
+      children:
+        webservers:
+        dbservers:
+    staging:
+      hosts:
+        staging01.example.com:
+```
+
+## group_vars/ Structure
+
+```
+inventory/
+└── group_vars/
+    ├── all.yml             # Applies to all hosts
+    ├── all/                # Split into multiple files (when using Vault)
+    │   ├── vars.yml
+    │   └── vault.yml       # ansible-vault encrypted
+    ├── webservers.yml
+    ├── dbservers.yml
+    └── production.yml
+```
+
+## host_vars/ – Host-specific Variables
+
+```
+inventory/
+└── host_vars/
+    └── web01.example.com/
+        ├── vars.yml
+        └── vault.yml
+```
+
+## ansible.cfg Inventory Setting
+
+```ini
+[defaults]
+inventory = inventory/hosts.yml
+```
+
+Or multiple inventories:
+```ini
+inventory = inventory/production:inventory/staging
+```
+
+## Naming Conventions for Groups
+- Lowercase, underscores: `web_servers` ✅, `WebServers` ❌
+- Functional: `webservers`, `dbservers`, `loadbalancers`
+- Environment: `production`, `staging`, `development`
+- Combined (child groups): `prod_webservers`
+
+## Dynamic Inventory
+
+For cloud environments or frequently changing infrastructure, use dynamic inventory scripts or plugins instead of static files.
+
+### Plugin-based (recommended)
+```yaml
+# inventory/aws_ec2.yml
+plugin: amazon.aws.aws_ec2
+regions:
+  - eu-central-1
+filters:
+  instance-state-name: running
+keyed_groups:
+  - key: tags.Role
+    prefix: role
+  - key: tags.Environment
+    prefix: env
+compose:
+  ansible_host: public_ip_address
+```
+
+```ini
+# ansible.cfg
+[defaults]
+inventory = inventory/aws_ec2.yml
+enable_plugins = amazon.aws.aws_ec2
+```
+
+### Script-based (legacy, still common)
+```python
+#!/usr/bin/env python3
+# inventory/dynamic_inventory.py
+import json
+
+def get_inventory():
+    return {
+        "webservers": {
+            "hosts": ["web1.example.com", "web2.example.com"],
+            "vars": {"nginx_port": 80}
+        },
+        "dbservers": {
+            "hosts": ["db1.example.com"]
+        },
+        "_meta": {
+            "hostvars": {
+                "web1.example.com": {"ansible_host": "10.0.1.10"},
+                "web2.example.com": {"ansible_host": "10.0.1.11"},
+                "db1.example.com":  {"ansible_host": "10.0.2.10"}
+            }
+        }
+    }
+
+if __name__ == "__main__":
+    print(json.dumps(get_inventory(), indent=2))
+```
+
+```bash
+# Make executable and test
+chmod +x inventory/dynamic_inventory.py
+ansible-inventory -i inventory/dynamic_inventory.py --list
+ansible-inventory -i inventory/dynamic_inventory.py --graph
+```
+
+### Mixing Static and Dynamic
+```ini
+# ansible.cfg – comma-separated or directory-based
+[defaults]
+inventory = inventory/static/hosts.yml:inventory/aws_ec2.yml
+```
+
+Or use a directory — Ansible merges all files automatically:
+```
+inventory/
+├── static_hosts.yml      # static
+├── aws_ec2.yml           # dynamic plugin
+└── group_vars/
+    └── all.yml
+```
