@@ -1,12 +1,8 @@
 {
   "mcpServers": {
     "ansible-dev": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "${workspaceFolder}",
-        "power-ansible"
-      ],
+      "command": "${workspaceFolder}/run_mcp.sh",
+      "args": [],
       "env": {
         "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}",
         "ANSIBLE_INVENTORY": "${workspaceFolder}/inventory/hosts.ini",

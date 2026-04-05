@@ -2,24 +2,9 @@
 
 Full Ansible tooling for Kiro: scaffold, lint, syntax-check, and diff playbooks & roles.
 
-## Installation
-
-### Option A – Install locally
-```bash
-# Copy the power folder into the Kiro powers directory
-cp -r power-ansible ~/.kiro/powers/installed/ansible
-```
-Then in Kiro: **Powers Panel → "Install from local path"**
-
-### Option B – Via GitHub
-```
-https://github.com/bergmann-max/power-ansible
-```
-In Kiro: **Powers Panel → "Import from GitHub"**
-
 ## Prerequisites
 
-[`uv`](https://docs.astral.sh/uv/) must be installed on the system. It is used to run the MCP server and manages dependencies automatically — no manual venv setup needed.
+[`uv`](https://docs.astral.sh/uv/) must be installed — that's it. All Python dependencies are managed automatically on first start.
 
 ```bash
 # macOS / Linux
@@ -28,6 +13,20 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Arch Linux
 sudo pacman -S uv
 ```
+
+## Installation
+
+### Option A – Via GitHub (recommended)
+In Kiro: **Powers Panel → "Import from GitHub"**
+```
+https://github.com/bergmann-max/power-ansible
+```
+
+### Option B – Install locally
+```bash
+cp -r power-ansible ~/.kiro/powers/installed/ansible
+```
+Then in Kiro: **Powers Panel → "Install from local path"**
 
 ## Activation
 
