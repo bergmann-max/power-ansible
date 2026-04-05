@@ -67,7 +67,6 @@ power-ansible/
 ├── pyproject.toml                        # Package definition for uvx
 ├── power_ansible/
 │   └── server.py                         # Packaged entry point
-├── requirements.txt                      # Python dependencies (reference)
 ├── hooks/
 │   └── ansible-lint-on-save.kiro.hook   # Auto-lint on file change
 └── steering/
