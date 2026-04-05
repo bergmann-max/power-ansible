@@ -9,7 +9,7 @@ description = "Ansible MCP server for Kiro"
 requires-python = ">=3.10"
 dependencies = [
     "mcp[cli]>=1.20.0",
-    "ansible-core>=2.18.0,<2.21",
+    "ansible-core>=2.18.0,"
     "ansible-lint>=25.0.0",
 ]
 

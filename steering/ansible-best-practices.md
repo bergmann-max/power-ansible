@@ -72,7 +72,7 @@ ansible-project/
 ---
 - name: Configure web servers
   hosts: webservers
-  become: yes
+  become: true
 
   vars:
     nginx_port: 80
@@ -345,7 +345,7 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
 # For the entire play
 - name: System configuration
   hosts: all
-  become: yes
+  become: true
   become_method: sudo
 
 # Only for individual tasks
@@ -353,7 +353,7 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
   ansible.builtin.package:
     name: nginx
     state: present
-  become: yes
+  become: true
 ```
 
 ## Inventory – Static YAML (recommended)
@@ -400,7 +400,7 @@ tasks:
 | Problem | Solution |
 |---|---|
 | SSH Connection Refused | Set `ansible_user`, `ansible_ssh_private_key_file` |
-| Permission Denied | Add `become: yes` |
+| Permission Denied | Add `become: true` |
 | Module Not Found | `ansible-galaxy collection install community.general` |
 | Unreachable Host | Test with `ansible all -m ping -i inventory/hosts.yml` |
 

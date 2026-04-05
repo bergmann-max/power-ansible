@@ -5,7 +5,24 @@ fileMatch: ["inventory/**", "group_vars/**", "host_vars/**"]
 
 # Ansible Inventory Conventions
 
-## Recommended Structure: YAML instead of INI (for larger projects)
+## Inventory Format: INI vs. YAML
+
+Both formats are fully supported. Choose based on your project size and preference:
+
+- `hosts.ini` – simple, compact, good for small projects and quick scaffolding
+- `hosts.yml` – more expressive, better for complex group hierarchies and larger projects
+
+### INI (default for scaffolding)
+```ini
+[webservers]
+web01.example.com
+web02.example.com
+
+[dbservers]
+db01.example.com
+```
+
+## YAML Structure (recommended for larger projects)
 
 ```yaml
 # inventory/hosts.yml

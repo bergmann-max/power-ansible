@@ -63,10 +63,10 @@ The power activates automatically when you use terms like **ansible**, **playboo
 power-ansible/
 ├── POWER.md                              # Kiro Power Manifest
 ├── mcp.json                              # MCP Server Configuration
-├── mcp_server.py                         # MCP Server (Python/FastMCP)
+├── mcp_server.py                         # Local dev entry point only
 ├── pyproject.toml                        # Package definition for uvx
 ├── power_ansible/
-│   └── server.py                         # Packaged entry point
+│   └── server.py                         # Packaged MCP server (FastMCP)
 ├── hooks/
 │   └── ansible-lint-on-save.kiro.hook   # Auto-lint on file change
 └── steering/

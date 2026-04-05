@@ -9,8 +9,7 @@
       ],
       "env": {
         "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}",
-        "ANSIBLE_INVENTORY": "${workspaceFolder}/inventory/hosts.ini",
-        "ANSIBLE_LINT_PROFILE": "production"
+        "ANSIBLE_INVENTORY": "${workspaceFolder}/inventory/hosts.ini"
       },
       "disabled": false,
       "autoApprove": [

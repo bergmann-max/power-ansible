@@ -4,7 +4,7 @@ Ansible Kiro Power – MCP Server
 Provides tools to create, lint, and check Ansible playbooks and roles.
 IMPORTANT: Only stderr for logs, stdout is reserved for JSON-RPC.
 """
-import os, sys, json, subprocess, textwrap
+import os, sys, subprocess, textwrap
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
@@ -223,7 +223,7 @@ def scaffold_inventory(groups: list[str] = None, hosts: list[str] = None) -> dic
         ansible_user: "{{ lookup('env', 'ANSIBLE_USER') | default('ansible') }}"
         ansible_python_interpreter: /usr/bin/python3
         """
-    _write(PROJECT_ROOT / "inventory" / "group_vars" / "all.yml", textwrap.dedent(all_vars))
+    _write(PROJECT_ROOT / "inventory" / "group_vars" / "all.yml", all_vars)
 
     for g in groups:
         _write(PROJECT_ROOT / "inventory" / "group_vars" / f"{g}.yml",

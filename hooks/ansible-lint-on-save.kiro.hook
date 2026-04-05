@@ -1,11 +1,10 @@
 {
-  "enabled": true,
   "name": "Ansible Lint on Save",
   "description": "Runs ansible-lint when a playbook or role task file is saved",
-  "version": "1",
+  "version": "1.0.0",
   "when": {
     "type": "fileEdited",
-    "fileMatch": ["playbooks/**/*.yml", "roles/**/tasks/*.yml", "roles/**/handlers/*.yml"]
+    "patterns": ["playbooks/**/*.yml", "roles/**/tasks/*.yml", "roles/**/handlers/*.yml"]
   },
   "then": {
     "type": "askAgent",
