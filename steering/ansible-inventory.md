@@ -31,14 +31,11 @@ all:
   children:
     webservers:
       hosts:
-        web01.example.com:
-          ansible_host: 10.0.1.10
+        web01.example.com:   # FQDN as name – no ansible_host needed
         web02.example.com:
-          ansible_host: 10.0.1.11
     dbservers:
       hosts:
         db01.example.com:
-          ansible_host: 10.0.2.10
 
     # Environment groups
     production:
@@ -48,6 +45,20 @@ all:
     staging:
       hosts:
         staging01.example.com:
+```
+
+### When to use `ansible_host`
+
+`ansible_host` is only needed when the inventory name is not directly reachable — e.g. a logical alias, a host without a DNS entry, or an internal hostname that differs from the connection target.
+
+```yaml
+# ansible_host useful: alias in inventory, connecting via IP or different hostname
+all:
+  hosts:
+    db-primary:                        # logical name in inventory
+      ansible_host: db01.example.com   # actual hostname used for the connection
+    legacy-app:
+      ansible_host: 10.0.3.15          # no DNS entry available
 ```
 
 ## group_vars/ Structure
@@ -137,9 +148,8 @@ def get_inventory():
         },
         "_meta": {
             "hostvars": {
-                "web1.example.com": {"ansible_host": "10.0.1.10"},
-                "web2.example.com": {"ansible_host": "10.0.1.11"},
-                "db1.example.com":  {"ansible_host": "10.0.2.10"}
+                # ansible_host only needed when connecting via a different name or IP
+                # for FQDNs as host names, hostvars can be left empty
             }
         }
     }

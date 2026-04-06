@@ -1,13 +1,13 @@
 # Kiro Power - Ansible
 
-Build, lint, and run Ansible playbooks and roles with best practices, proper structure, and idempotent design patterns.
+Build, lint, and validate Ansible playbooks and roles with best practices, proper structure, and idempotent design patterns.
 
 ## Prerequisites
 
 [`uv`](https://docs.astral.sh/uv/) must be installed — that's it. All Python dependencies are managed automatically on first start.
 
 ```bash
-# macOS / Linux
+# Linux / macOS
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Arch Linux
@@ -63,9 +63,8 @@ The power activates automatically when you use terms like **ansible**, **playboo
 power-ansible/
 ├── POWER.md                              # Kiro Power Manifest
 ├── mcp.json                              # MCP Server Configuration
-├── mcp_server.py                         # Local dev entry point only
 ├── pyproject.toml                        # Package definition for uvx
-├── power_ansible/
+├── ansible_mcp/
 │   └── server.py                         # Packaged MCP server (FastMCP)
 ├── hooks/
 │   └── ansible-lint-on-save.kiro.hook   # Auto-lint on file change

@@ -86,7 +86,7 @@ These rules apply to ALL Ansible content generated in this workspace:
 
 - **Always use FQCN** (Fully Qualified Collection Name) for modules: `ansible.builtin.copy`, not `copy`
 - **Always write idempotent tasks** – tasks must be safe to run multiple times
-- **Never hardcode passwords** – use `ansible-vault` or environment variables
+- **Never hardcode passwords** – use `ansible-vault`, environment variables, CI/CD secrets, or external secret managers (e.g. HashiCorp Vault) and inject via `-e` or `lookup('env', ...)`
 - **Use `notify` + handlers** for service restarts, never `ansible.builtin.service` in tasks directly after config changes
 - **All variables** go in `defaults/main.yml` (low precedence, easy override) or `vars/main.yml` (high precedence, internal)
 - **Templates** use Jinja2 with `.j2` extension in the `templates/` folder

@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatch: ["playbooks/**/*.yml", "site.yml", "*.playbook.yml"]
+fileMatchPattern: "{playbooks/**/*.yml,site.yml,*.playbook.yml}"
 ---
 
 # Ansible Playbook Workflow
@@ -17,7 +17,7 @@ fileMatch: ["playbooks/**/*.yml", "site.yml", "*.playbook.yml"]
     - <playbook-name>
 
   vars:
-    # No passwords here! → ansible-vault or env vars
+    # No passwords here! → ansible-vault, env vars, CI/CD secrets, or external secret managers (e.g. HashiCorp Vault)
 
   pre_tasks:
     - name: Assert prerequisites
@@ -39,15 +39,30 @@ fileMatch: ["playbooks/**/*.yml", "site.yml", "*.playbook.yml"]
 ```
 
 ## Task Naming Conventions
-- **Format**: `Verb + Object` → "Install nginx", "Configure sshd", "Start application"
-- **Language**: English
-- **No abbreviations**: `Configure` not `Cfg`
+- Format: `Verb + Object` → "Install nginx", "Configure sshd", "Start application"
+- Language: English
+- No abbreviations: `Configure` not `Cfg`
+- ansible-lint `name[casing]`: first letter MUST be uppercase
+- ansible-lint `name[missing]`: every task MUST have a `name:`
+
+## no-free-form – never use inline command syntax
+```yaml
+# ✅
+- name: Run migration
+  ansible.builtin.command:
+    cmd: /usr/bin/migrate --env production
+
+# ❌ ansible-lint will fail
+- name: Run migration
+  ansible.builtin.command: /usr/bin/migrate --env production
+```
 
 ## What NEVER Belongs in a Playbook
 - Passwords in plain text → `ansible-vault encrypt_string` or manage externally (CI/CD secrets, HashiCorp Vault, etc.) and pass via `-e`
 - `ignore_errors: true` without a comment explaining why
 - `shell:` or `command:` when an Ansible module exists
-- `always_run: yes` (deprecated) → `tags: always`
+- `always_run: true` (deprecated) → `tags: always`
+- `yes`/`no`/`True`/`False` as booleans → always use `true`/`false` (`yaml[truthy]`)
 
 ## Tags Strategy
 Every play and every task gets tags:

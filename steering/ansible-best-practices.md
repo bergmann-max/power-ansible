@@ -237,6 +237,12 @@ db_password: !vault |
 
 # ✅ From environment variable
 db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
+
+# ✅ From HashiCorp Vault
+db_password: "{{ lookup('hashi_vault', 'secret=secret/db:password') }}"
+
+# ✅ CI/CD secret (injected as env var by the pipeline)
+db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
 ```
 
 ## Debugging
@@ -276,7 +282,7 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
 # Disable fact gathering when not needed
 - name: Quick task
   hosts: all
-  gather_facts: no
+  gather_facts: false
 
 # Gather specific facts only
 - name: Selective facts
@@ -290,7 +296,7 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
 ### File Operations
 ```yaml
 - ansible.builtin.file:       # directories, symlinks, permissions
-- ansible.builtin.copy:       # static files (backup: yes recommended)
+- ansible.builtin.copy:       # static files (backup: true recommended)
 - ansible.builtin.template:   # Jinja2 (validate: 'nginx -t -c %s')
 - ansible.builtin.lineinfile: # single line (regexp + line)
 - ansible.builtin.blockinfile: # multi-line block (set marker!)
@@ -318,7 +324,7 @@ mode: '0755'
 - ansible.builtin.apt:        # Debian/Ubuntu (update_cache: yes)
 - ansible.builtin.yum:        # RHEL/CentOS
 - ansible.builtin.service:    # state + enabled
-- ansible.builtin.systemd:    # daemon_reload: yes when needed
+- ansible.builtin.systemd:    # daemon_reload: true when needed
 ```
 
 ### Command Execution
@@ -380,16 +386,13 @@ all:
   children:
     webservers:
       hosts:
-        web1.example.com:
-          ansible_host: 192.168.1.10
+        web1.example.com:   # FQDN – no ansible_host needed
         web2.example.com:
-          ansible_host: 192.168.1.11
       vars:
         nginx_port: 80
     databases:
       hosts:
         db1.example.com:
-          ansible_host: 192.168.1.20
           postgresql_version: 14
 ```
 
@@ -427,6 +430,19 @@ ansible-lint playbook.yml                      # Lint
 ansible-playbook playbook.yml --check --diff   # Dry-Run
 ansible-playbook playbook.yml                  # Execute
 ```
+
+## ansible-lint Key Rules Reference
+
+| Rule | What it checks |
+|---|---|
+| `name[missing]` | Every task must have a `name:` |
+| `name[casing]` | Task names must start with uppercase |
+| `no-changed-when` | `command`/`shell` tasks must have `changed_when:` |
+| `no-free-form` | No inline args on `command`/`shell` — use `cmd:` key |
+| `fqcn[action]` | Always use FQCN for modules (`ansible.builtin.*`) |
+| `var-naming[no-role-prefix]` | Role variables must be prefixed with the role name |
+| `yaml[truthy]` | Use `true`/`false` — never `yes`/`no`/`True`/`False` |
+| `key-order` | `name` first, then module, `when`, `loop`, `register`, `notify`, `tags` |
 
 ---
 **Remember:** Ansible is about declarative infrastructure — describe the **desired state**, not the steps to get there. Focus on **idempotency**, **clarity**, and **maintainability**.
