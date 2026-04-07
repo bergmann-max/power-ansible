@@ -36,7 +36,7 @@ roles/<role_name>/
 ---
 - name: Include OS-specific variables
   ansible.builtin.include_vars: "{{ ansible_os_family | lower }}.yml"
-  failed_when: false        # if os file doesn't exist, continue
+  when: ansible_os_family is defined   # skip gracefully if fact is unavailable
   tags: always
 
 - name: Install {{ role_name }}
@@ -46,6 +46,31 @@ roles/<role_name>/
 - name: Configure {{ role_name }}
   ansible.builtin.include_tasks: configure.yml
   tags: configure
+```
+
+### import_tasks vs include_tasks – when to use which
+
+| | `import_tasks` | `include_tasks` |
+|---|---|---|
+| Processed | at parse time (static) | at runtime (dynamic) |
+| `when:` on the directive | ❌ evaluated only once for all tasks inside | ✅ evaluated at runtime |
+| Tags on included tasks | ✅ visible to `--list-tags` | ❌ not visible until runtime |
+| Use when | no conditions needed, want tag visibility | OS-specific includes, conditional loading |
+
+```yaml
+# ✅ include_tasks for conditional/dynamic loading
+- name: Include OS-specific tasks
+  ansible.builtin.include_tasks: "{{ ansible_os_family | lower }}.yml"
+  when: ansible_os_family is defined
+
+# ✅ import_tasks for unconditional static includes (tags work correctly)
+- name: Import hardening tasks
+  ansible.builtin.import_tasks: hardening.yml
+
+# ❌ import-task-no-when violation – when: on import_tasks applies only once
+- name: Import tasks conditionally
+  ansible.builtin.import_tasks: optional.yml
+  when: some_condition   # <- use include_tasks instead!
 ```
 
 ## ansible-lint Rules to Follow
@@ -77,17 +102,20 @@ roles/<role_name>/
 ```yaml
 # ✅
 - name: Check app version
-  ansible.builtin.command: /usr/bin/myapp --version
+  ansible.builtin.command:
+    cmd: /usr/bin/myapp --version
   register: app_version
   changed_when: false   # read-only, never marks as changed
 
 - name: Run migration
-  ansible.builtin.command: /usr/bin/migrate
+  ansible.builtin.command:
+    cmd: /usr/bin/migrate
   changed_when: app_version.rc == 0   # explicit condition
 
 # ❌ ansible-lint will fail
 - name: Run something
-  ansible.builtin.command: /usr/bin/something
+  ansible.builtin.command:
+    cmd: /usr/bin/something
 ```
 
 ### no-free-form – never use free-form command syntax
@@ -101,17 +129,20 @@ roles/<role_name>/
 - name: Run script
   ansible.builtin.command: /usr/bin/myscript --arg value
 ```
-
 ### key-order – recommended task key order
+
+ansible-lint enforces only that `name` is the first key, and that `block`/`rescue`/`always` are the last keys. The order below is a widely-used convention that also satisfies the rule:
+
 ```yaml
-- name: ...          # 1. name first
+- name: ...          # 1. name first (enforced by lint)
   module:            # 2. module
     ...
-  when: ...          # 3. conditionals
+  when: ...          # 3. conditionals (must come before block/rescue/always)
   loop: ...          # 4. loops
   register: ...      # 5. register
   notify: ...        # 6. notify
-  tags: ...          # 7. tags last
+  tags: ...          # 7. tags
+  block: ...         # 8. block/rescue/always LAST (enforced by lint)
 ```
 
 ## Variable Naming – Role Prefix
@@ -126,6 +157,35 @@ install_nginx_vhosts: []
 ```
 
 No generic names like `port`, `enabled`, or `package` — always `<role_name>_<variable>`.
+
+## Loop Variables – loop_var_prefix
+
+When using loops inside roles, the default loop variable `item` can collide with outer loops. Use `loop_control` with a role-specific prefix to avoid this (`loop-var-prefix` rule, enabled via `.ansible-lint`):
+
+```yaml
+# ✅ Role-prefixed loop variable – no collision with outer loops
+- name: Create vhosts
+  ansible.builtin.template:
+    src: vhost.conf.j2
+    dest: "/etc/nginx/conf.d/{{ __nginx_vhost.name }}.conf"
+    mode: 'u=rw,g=r,o=r'
+  loop: "{{ nginx_vhosts }}"
+  loop_control:
+    loop_var: __nginx_vhost   # prefix: __ or <role_name>_
+    label: "{{ __nginx_vhost.name }}"
+
+# ❌ Generic 'item' – risky in nested/included roles
+- name: Create vhosts
+  ansible.builtin.template:
+    src: vhost.conf.j2
+    dest: "/etc/nginx/conf.d/{{ item.name }}.conf"
+  loop: "{{ nginx_vhosts }}"
+```
+
+Configure the expected pattern in `.ansible-lint`:
+```yaml
+loop_var_prefix: "^(__|{role}_)"
+```
 
 ## defaults/main.yml – Variable Documentation
 

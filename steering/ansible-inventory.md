@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatch: ["inventory/**", "group_vars/**", "host_vars/**"]
+fileMatchPattern: "{inventory/**,group_vars/**,host_vars/**,**/hosts.yml,**/hosts.ini}"
 ---
 
 # Ansible Inventory Conventions

@@ -280,16 +280,16 @@ def create_ansible_cfg() -> dict:
         inventory          = inventory/hosts.ini
         roles_path         = roles
         collections_path   = collections
-        host_key_checking  = False
-        retry_files_enabled = False
+        host_key_checking  = false
+        retry_files_enabled = false
         stdout_callback    = default
         # callbacks_enabled  = profile_tasks
         interpreter_python = auto_silent
 
         [privilege_escalation]
-        become       = False
+        become       = false
         become_method = sudo
-        become_ask_pass = False
+        become_ask_pass = false
 
         [ssh_connection]
         pipelining    = True

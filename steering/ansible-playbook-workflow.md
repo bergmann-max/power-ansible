@@ -61,7 +61,6 @@ fileMatchPattern: "{playbooks/**/*.yml,site.yml,*.playbook.yml}"
 - Passwords in plain text → `ansible-vault encrypt_string` or manage externally (CI/CD secrets, HashiCorp Vault, etc.) and pass via `-e`
 - `ignore_errors: true` without a comment explaining why
 - `shell:` or `command:` when an Ansible module exists
-- `always_run: true` (deprecated) → `tags: always`
 - `yes`/`no`/`True`/`False` as booleans → always use `true`/`false` (`yaml[truthy]`)
 
 ## Tags Strategy

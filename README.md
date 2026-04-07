@@ -64,7 +64,7 @@ ansible-mcp/
 ├── POWER.md                              # Kiro Power Manifest
 ├── mcp.json                              # MCP Server Configuration
 ├── pyproject.toml                        # Package definition for uvx
-├── ansible_mcp/
+├── ansible-mcp/
 │   └── server.py                         # Packaged MCP server (FastMCP)
 ├── hooks/
 │   └── ansible-lint-on-save.kiro.hook   # Auto-lint on file change

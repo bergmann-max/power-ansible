@@ -87,10 +87,18 @@ These rules apply to ALL Ansible content generated in this workspace:
 - **Always use FQCN** (Fully Qualified Collection Name) for modules: `ansible.builtin.copy`, not `copy`
 - **Always write idempotent tasks** – tasks must be safe to run multiple times
 - **Never hardcode passwords** – use `ansible-vault`, environment variables, CI/CD secrets, or external secret managers (e.g. HashiCorp Vault) and inject via `-e` or `lookup('env', ...)`
-- **Use `notify` + handlers** for service restarts, never `ansible.builtin.service` in tasks directly after config changes
+- **Use `notify` + handlers** for service restarts, never `ansible.builtin.service` in tasks directly after config changes; never use `when: result.changed` (no-handler rule)
 - **All variables** go in `defaults/main.yml` (low precedence, easy override) or `vars/main.yml` (high precedence, internal)
 - **Templates** use Jinja2 with `.j2` extension in the `templates/` folder
 - **Tags** should be added to every play and task for targeted execution
 - **`when` conditions** use Ansible facts or registered variables, never shell commands inline
 - **Loop items** use `loop:` not the deprecated `with_items:`
+- **Loop variables in roles** use a role-specific prefix via `loop_control.loop_var` (e.g. `__rolename_item`) to avoid collisions
 - **File permissions** are always explicit and use ugo format: `mode: 'u=rw,g=r,o=r'` — if a party has no permissions at all, use the explicit reset form, e.g. `mode: 'u=rw,g=r,o=-'`
+- **Booleans** always use `true`/`false` — never `yes`/`no`/`True`/`False` (`yaml[truthy]` rule)
+- **Package versions** always pin with `state: present` + explicit version — never `state: latest` in production (`package-latest` rule)
+- **Shell pipes** always include `set -o pipefail` and `executable: /bin/bash` (`risky-shell-pipe` rule)
+- **`become_user`** always requires `become: true` at the **same** level — never rely on inheritance (`partial-become` rule)
+- **Sensitive loops** always set `no_log: true` when iterating over passwords or secrets
+- **`import_tasks` with `when:`** is a violation — use `include_tasks` for conditional task loading (`import-task-no-when` rule)
+- **Implicit type coercion** is forbidden — always use explicit Jinja2 filters like `| to_json` (`avoid-implicit` rule)
