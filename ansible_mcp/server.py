@@ -37,7 +37,7 @@ def _resolve_inventory() -> Path | None:
 
 INVENTORY = _resolve_inventory()
 
-mcp = FastMCP("ansible-dev")
+mcp = FastMCP("ansible")
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -282,8 +282,8 @@ def create_ansible_cfg() -> dict:
         collections_path   = collections
         host_key_checking  = False
         retry_files_enabled = False
-        stdout_callback    = yaml
-        callbacks_enabled  = profile_tasks
+        stdout_callback    = default
+        # callbacks_enabled  = profile_tasks
         interpreter_python = auto_silent
 
         [privilege_escalation]

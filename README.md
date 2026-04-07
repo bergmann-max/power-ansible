@@ -1,4 +1,4 @@
-# Kiro Power - Ansible
+# Ansible MCP
 
 Build, lint, and validate Ansible playbooks and roles with best practices, proper structure, and idempotent design patterns.
 
@@ -24,7 +24,7 @@ https://github.com/bergmann-max/power-ansible
 
 ### Option B – Install locally
 ```bash
-cp -r power-ansible ~/.kiro/powers/installed/ansible
+cp -r power-ansible ~/.kiro/powers/installed/ansible-mcp
 ```
 Then in Kiro: **Powers Panel → "Install from local path"**
 
@@ -60,7 +60,7 @@ The power activates automatically when you use terms like **ansible**, **playboo
 ## Project Structure
 
 ```
-power-ansible/
+ansible-mcp/
 ├── POWER.md                              # Kiro Power Manifest
 ├── mcp.json                              # MCP Server Configuration
 ├── pyproject.toml                        # Package definition for uvx

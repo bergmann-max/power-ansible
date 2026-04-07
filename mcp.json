@@ -1,11 +1,11 @@
 {
   "mcpServers": {
-    "ansible-dev": {
+    "ansible": {
       "command": "uvx",
       "args": [
         "--from",
         "git+https://github.com/bergmann-max/power-ansible",
-        "power-ansible"
+        "ansible-mcp"
       ],
       "env": {
         "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}",
@@ -18,8 +18,11 @@
         "create_ansible_cfg",
         "lint_file",
         "syntax_check",
+        "diff_check",
+        "gather_facts",
         "list_roles",
         "list_playbooks",
+        "show_role_tree",
         "scaffold_inventory"
       ],
       "disabledTools": []

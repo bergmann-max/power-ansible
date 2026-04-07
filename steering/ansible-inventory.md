@@ -131,40 +131,6 @@ inventory = inventory/aws_ec2.yml
 enable_plugins = amazon.aws.aws_ec2
 ```
 
-### Script-based (legacy, still common)
-```python
-#!/usr/bin/env python3
-# inventory/dynamic_inventory.py
-import json
-
-def get_inventory():
-    return {
-        "webservers": {
-            "hosts": ["web1.example.com", "web2.example.com"],
-            "vars": {"nginx_port": 80}
-        },
-        "dbservers": {
-            "hosts": ["db1.example.com"]
-        },
-        "_meta": {
-            "hostvars": {
-                # ansible_host only needed when connecting via a different name or IP
-                # for FQDNs as host names, hostvars can be left empty
-            }
-        }
-    }
-
-if __name__ == "__main__":
-    print(json.dumps(get_inventory(), indent=2))
-```
-
-```bash
-# Make executable and test
-chmod +x inventory/dynamic_inventory.py
-ansible-inventory -i inventory/dynamic_inventory.py --list
-ansible-inventory -i inventory/dynamic_inventory.py --graph
-```
-
 ### Mixing Static and Dynamic
 ```ini
 # ansible.cfg – comma-separated or directory-based
