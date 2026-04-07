@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ansible-mcp = "ansible-mcp.server:main"
+ansible-mcp = "ansible_mcp.server:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ansible-mcp"]
