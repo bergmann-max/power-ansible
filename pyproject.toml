@@ -17,4 +17,4 @@ dependencies = [
 ansible-mcp = "ansible_mcp.server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["ansible-mcp"]
+packages = ["ansible_mcp"]
