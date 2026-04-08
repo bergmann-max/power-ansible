@@ -8,8 +8,7 @@
         "ansible-mcp"
       ],
       "env": {
-        "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}",
-        "ANSIBLE_INVENTORY": "${workspaceFolder}/inventory/hosts.ini"
+        "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}"
       },
       "disabled": false,
       "autoApprove": [

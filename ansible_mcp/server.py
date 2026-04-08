@@ -28,7 +28,7 @@ def _resolve_inventory() -> Path | None:
                 return resolved
 
     # 3. Common fallback locations
-    for candidate in ["hosts.yml", "hosts.ini", "inventory/hosts.yml", "inventory/hosts.ini"]:
+    for candidate in ["hosts.yml", "hosts.yaml", "hosts.ini", "inventory/hosts.yml", "inventory/hosts.yaml", "inventory/hosts.ini"]:
         p = PROJECT_ROOT / candidate
         if p.exists():
             return p
