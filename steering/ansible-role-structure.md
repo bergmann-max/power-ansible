@@ -229,17 +229,17 @@ Every `.j2` file starts with:
 ```yaml
 # handlers/main.yml
 ---
-- name: restart nginx           # Name = exactly the string in `notify:`
+- name: Restart nginx           # Name = exactly the string in `notify:`
   ansible.builtin.service:
     name: nginx
     state: restarted
-  listen: "restart nginx"       # listen allows multiple tasks to trigger
+  listen: "Restart nginx"       # listen allows multiple tasks to trigger
 
-- name: reload nginx
+- name: Reload nginx
   ansible.builtin.service:
     name: nginx
     state: reloaded
-  listen: "reload nginx"
+  listen: "Reload nginx"
 ```
 
 ## meta/main.yml – Declare Dependencies

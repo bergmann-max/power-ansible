@@ -33,7 +33,7 @@ fileMatchPattern: "{playbooks/**/*.yml,site.yml,*.playbook.yml}"
       notify: <handler if needed>
 
   handlers:
-    - name: <lowercase, descriptive>
+    - name: <Uppercase, descriptive>
       ansible.builtin.service:
         ...
 ```
@@ -76,5 +76,6 @@ tags:
 ## Idempotency Checklist
 Check before committing:
 - [ ] Does the playbook run twice without errors and without unwanted changes?
-- [ ] Are all `command:`/`shell:` tasks annotated with `changed_when:` and `failed_when:`?
+- [ ] Are all `command:`/`shell:` tasks annotated with `changed_when:`?
+- [ ] Are `command:`/`shell:` tasks with unreliable exit codes annotated with `failed_when:`?
 - [ ] Are files with `state: present` not constantly being rewritten?

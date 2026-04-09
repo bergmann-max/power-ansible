@@ -96,7 +96,7 @@ ansible-project/
       notify: Restart nginx
 
   handlers:
-    - name: Restart nginx
+    - name: Restart nginx         # uppercase, matches notify string exactly
       ansible.builtin.service:
         name: nginx
         state: restarted
@@ -514,7 +514,52 @@ all:
           postgresql_version: 14
 ```
 
+## Variable Placement
+
+| File | Precedence | Use for |
+|---|---|---|
+| `defaults/main.yml` | Low | Public variables – easy to override from outside the role |
+| `vars/main.yml` | High | Internal role variables – not meant to be overridden |
+
+Never define role variables at play level or inline in tasks.
+
+## Template Extension
+
+Always use the `.j2` extension for Jinja2 template files stored in the `templates/` folder:
+```
+templates/
+├── nginx.conf.j2
+└── app.conf.j2
+```
+
+## when Conditions
+
+`when:` must only use Ansible facts or registered variables — never inline shell commands:
+```yaml
+# ✅ Correct – uses ansible fact
+- name: Install on Debian only
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  when: ansible_os_family == "Debian"
+
+# ✅ Correct – uses registered variable
+- name: Restart only if config changed
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+  when: config_result.changed
+
+# ❌ Wrong – shell command inline in when
+- name: Check if file exists
+  ansible.builtin.debug:
+    msg: "exists"
+  when: "{{ lookup('pipe', 'test -f /etc/nginx/nginx.conf') }}"
+```
+
 ## Tag Strategy
+
+Every play and every task must have at least one tag for targeted execution:
 ```yaml
 tasks:
   - name: Install packages

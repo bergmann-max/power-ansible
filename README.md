@@ -44,7 +44,7 @@ Then in Kiro: Powers Panel → "Install from local path"
 
 ## Activation
 
-The power activates automatically when you use terms like `ansible`, `playbook`, `role`, `inventory`, `task`, `handler`, `vars`, `yaml`, `automation`, `infrastructure`.
+The power activates automatically when you use terms like `ansible`, `playbook`, `role`, `inventory`, `task`, `handler`, `vars`, `yaml`, `automation`, `infrastructure`, `idempotent`, `hosts`, `galaxy`, `collections`.
 
 ## MCP Tools
 
@@ -69,13 +69,13 @@ The power activates automatically when you use terms like `ansible`, `playbook`,
 | `ANSIBLE_PROJECT_ROOT` | `cwd` | Root of the Ansible project |
 | `ANSIBLE_INVENTORY` | auto-detected | Path to inventory file |
 
-Inventory is resolved in this order: `ANSIBLE_INVENTORY` env var → `ansible.cfg [defaults] inventory` → common fallback paths (`hosts.yml`, `hosts.ini`, `inventory/hosts.yml`, `inventory/hosts.ini`).
+Inventory is resolved in this order: `ANSIBLE_INVENTORY` env var → `ansible.cfg [defaults] inventory` → common fallback paths (`hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.yml`, `inventory/hosts.yaml`, `inventory/hosts.ini`).
 
 ## Steering Files
 
 | File | When active | Content |
 |---|---|---|
-| `ansible-best-practices.md` | Always | FQCN, idempotency, variables, lint rules |
+| `ansible-best-practices.md` | Always | Core principles, patterns, and reference for all Ansible development |
 | `ansible-playbook-workflow.md` | For playbook files | Playbook creation workflow |
 | `ansible-role-structure.md` | For role files | Role structure and conventions |
 | `ansible-inventory.md` | For inventory files | Inventory layout and group_vars |
