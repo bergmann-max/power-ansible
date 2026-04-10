@@ -10,21 +10,17 @@
       "env": {
         "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}"
       },
-      "disabled": false,
       "autoApprove": [
         "create_playbook",
         "create_role",
         "create_ansible_cfg",
         "lint_file",
         "syntax_check",
-        "diff_check",
-        "gather_facts",
         "list_roles",
         "list_playbooks",
         "show_role_tree",
         "scaffold_inventory"
-      ],
-      "disabledTools": []
+      ]
     }
   }
 }

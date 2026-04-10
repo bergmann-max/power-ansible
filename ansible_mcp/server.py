@@ -35,8 +35,6 @@ def _resolve_inventory() -> Path | None:
 
     return None
 
-INVENTORY = _resolve_inventory()
-
 mcp = FastMCP("ansible")
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -55,7 +53,8 @@ def _run(cmd: list[str]) -> dict:
 
 def _require_inventory() -> tuple[Path | None, dict | None]:
     """Returns (inventory_path, error_dict). If error_dict is set, return it immediately."""
-    if INVENTORY is None:
+    inv = _resolve_inventory()
+    if inv is None:
         return None, {
             "ok": False,
             "error": (
@@ -65,7 +64,7 @@ def _require_inventory() -> tuple[Path | None, dict | None]:
                 "  3. hosts.yml or hosts.ini in project root"
             )
         }
-    return INVENTORY, None
+    return inv, None
 
 # ── Scaffold Tools ────────────────────────────────────────────────────────────
 
@@ -182,7 +181,7 @@ def create_role(role_name: str, description: str = "") -> dict:
               author: "your_name"
               description: "{description or role_name}"
               license: "MIT"
-              min_ansible_version: "2.18"
+              min_ansible_version: "2.20"
               platforms:
                 - name: EL
                   versions:
@@ -205,7 +204,7 @@ def create_role(role_name: str, description: str = "") -> dict:
 
             ## Requirements
 
-            - Ansible >= 2.18
+            - Ansible >= 2.20
 
             ## Variables
 
@@ -227,10 +226,8 @@ def create_role(role_name: str, description: str = "") -> dict:
     }
     created = []
     for rel, content in files.items():
-        p = base / rel
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(textwrap.dedent(content))
-        created.append(str(p.relative_to(PROJECT_ROOT)))
+        _write(base / rel, content)
+        created.append(str((base / rel).relative_to(PROJECT_ROOT)))
     return {"ok": True, "role": role_name, "files_created": created}
 
 
@@ -251,7 +248,7 @@ def scaffold_inventory(groups: list[str] = None, hosts: list[str] = None) -> dic
     ini_lines.append("")
     for g in groups:
         ini_lines.append(f"[{g}]")
-        ini_lines.append(f"# add hosts here")
+        ini_lines.append("# add hosts here")
         ini_lines.append("")
 
     ini_path = PROJECT_ROOT / "inventory" / "hosts.ini"
@@ -281,7 +278,6 @@ def create_ansible_cfg() -> dict:
         roles_path         = roles
         collections_path   = collections
         host_key_checking  = false
-        retry_files_enabled = false
         stdout_callback    = default
         # callbacks_enabled  = profile_tasks
         interpreter_python = auto_silent
@@ -390,7 +386,7 @@ def show_role_tree(role_name: str) -> dict:
 # ── Entry Point ───────────────────────────────────────────────────────────────
 def main():
     print(f"[ansible-power] PROJECT_ROOT={PROJECT_ROOT}", file=sys.stderr)
-    print(f"[ansible-power] INVENTORY={INVENTORY or 'not found'}", file=sys.stderr)
+    print(f"[ansible-power] INVENTORY={_resolve_inventory() or 'not found'}", file=sys.stderr)
     mcp.run(transport="stdio")
 
 
