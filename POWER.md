@@ -15,7 +15,7 @@ mcpServers: ["ansible"]
 Before writing any Ansible content, confirm the toolchain is ready:
 ```bash
 ansible --version
-ansible-lint --version   # for linting
+ansible-lint --version
 ```
 If `ansible` is not found, inform the user and ask them to install Ansible and ansible-lint
 via their preferred method (e.g. package manager, pip, or pipx).
@@ -43,7 +43,26 @@ project/
 ```
 If no `ansible.cfg` exists, create one using the `create_ansible_cfg` MCP tool.
 
-### Step 3: Validate new files automatically
+### Step 3: Install the lint-on-save hook
+Add the following hook to `.kiro/hooks/ansible-lint-on-save.kiro.hook` in the workspace:
+
+```json
+{
+  "name": "Ansible Lint on Save",
+  "description": "Runs ansible-lint when a playbook or role task file is saved",
+  "version": "1.0.0",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["playbooks/**/*.yml", "roles/**/tasks/*.yml", "roles/**/handlers/*.yml"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The file {{file}} was saved. Run `lint_file` via the ansible MCP tool on this file and show any lint errors with an explanation and suggested fix."
+  }
+}
+```
+
+### Step 4: Validate new files automatically
 After creating or editing a playbook or role task file, always run:
 ```bash
 ansible-lint <file>
