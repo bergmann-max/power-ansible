@@ -2,7 +2,6 @@
 
 [![Kiro Power](https://img.shields.io/badge/kiro-power-9046FF)](https://kiro.dev/)
 [![MCP](https://img.shields.io/badge/MCP-FastMCP-5468FF)](https://modelcontextprotocol.io/)
-[![uvx](https://img.shields.io/badge/uvx-ready-lightgrey)](https://docs.astral.sh/uv/guides/tools/#running-tools)
 [![Ansible](https://img.shields.io/badge/ansible--core-2.20-red)](https://docs.ansible.com/projects/ansible)
 [![ansible-lint](https://img.shields.io/badge/ansible--lint-25.6-yellow)](https://docs.ansible.com/projects/lint/)
 [![License](https://img.shields.io/badge/license-Unlicense-green)](https://github.com/bergmann-max/power-ansible/blob/main/LICENSE)
