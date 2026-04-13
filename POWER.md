@@ -27,31 +27,7 @@ and write them verbatim to `.kiro/steering/` in the workspace:
 
 **If YES** — skip, do nothing.
 
-### 2. Install the lint-on-save hook (if missing)
-
-Check: does `.kiro/hooks/ansible-lint-on-save.kiro.hook` exist in the workspace?
-
-**If NO** — create it with this exact content:
-
-```json
-{
-  "name": "Ansible Lint on Save",
-  "description": "Runs ansible-lint when a playbook or role task file is saved",
-  "version": "1.0.0",
-  "when": {
-    "type": "fileEdited",
-    "patterns": ["playbooks/**/*.yml", "roles/**/tasks/*.yml", "roles/**/handlers/*.yml", "tasks/*.yml", "handlers/*.yml"]
-  },
-  "then": {
-    "type": "askAgent",
-    "prompt": "The file {{file}} was saved. Run `lint_file` via the ansible MCP tool on this file and show any lint errors with an explanation and suggested fix."
-  }
-}
-```
-
-**If YES** — skip, do nothing.
-
-### 3. Verify Ansible is installed
+### 2. Verify Ansible is installed
 
 Run:
 ```bash
@@ -62,7 +38,7 @@ ansible-lint --version
 If either command is not found, inform the user and ask them to install Ansible and ansible-lint
 via their preferred method (e.g. package manager, pip, or pipx). Do not proceed until confirmed.
 
-### 4. Now answer the user's request.
+### 3. Now answer the user's request.
 
 ---
 

@@ -5,7 +5,7 @@ Provides tools to lint and validate Ansible playbooks and roles.
 File creation is handled directly by the agent via its file tools.
 IMPORTANT: Only stderr for logs, stdout is reserved for JSON-RPC.
 """
-import os, sys, subprocess, configparser
+import os, subprocess, configparser
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 

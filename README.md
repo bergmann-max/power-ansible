@@ -8,7 +8,7 @@
 
 Build, lint, and validate Ansible playbooks and roles with best practices, proper structure, and idempotent design patterns.
 
-A [Kiro Power](https://kiro.dev) that provides an MCP server, steering files, and hooks for Ansible development.
+A [Kiro Power](https://kiro.dev) that provides an MCP server and steering files for Ansible development.
 
 ## Prerequisites
 
@@ -58,8 +58,7 @@ The power activates automatically when you use terms like `ansible`, `playbook`,
 
 | Variable | Default | Description |
 |---|---|---|
-| `ANSIBLE_PROJECT_ROOT` | `cwd` | Root of the Ansible project |
-| `ANSIBLE_INVENTORY` | auto-detected | Path to inventory file |
+| `ANSIBLE_INVENTORY` | auto-detected | Override inventory path (skips auto-detection) |
 
 Inventory is resolved in this order: `ANSIBLE_INVENTORY` env var → `ansible.cfg [defaults] inventory` → common fallback paths (`hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.yml`, `inventory/hosts.yaml`, `inventory/hosts.ini`).
 
@@ -71,9 +70,3 @@ Inventory is resolved in this order: `ANSIBLE_INVENTORY` env var → `ansible.cf
 | `ansible-playbook-workflow.md` | For playbook files | Playbook creation workflow |
 | `ansible-role-structure.md` | For role files | Role structure and conventions |
 | `ansible-inventory.md` | For inventory files | Inventory layout and group_vars |
-
-## Hooks
-
-| Hook | Trigger | Action |
-|---|---|---|
-| `ansible-lint-on-save` | Save `playbooks/**/*.yml`, `roles/**/tasks/*.yml`, `roles/**/handlers/*.yml` | Runs `lint_file` and shows errors with explanations |
