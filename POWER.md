@@ -9,18 +9,52 @@ mcpServers: ["ansible"]
 
 # Ansible Power – Onboarding & Steering
 
-## Onboarding
+## Onboarding – REQUIRED ACTIONS
+
+When this power is activated, you MUST perform the following steps automatically — do not wait for the user to ask.
 
 ### Step 1: Verify Ansible is installed
-Before writing any Ansible content, confirm the toolchain is ready:
+Run the following and check the output:
 ```bash
 ansible --version
 ansible-lint --version
 ```
-If `ansible` is not found, inform the user and ask them to install Ansible and ansible-lint
-via their preferred method (e.g. package manager, pip, or pipx).
+If either command is not found, inform the user and ask them to install Ansible and ansible-lint
+via their preferred method (e.g. package manager, pip, or pipx). Do not proceed until confirmed.
 
-### Step 2: Check the project structure
+### Step 2: Set up steering files
+Check whether `.kiro/steering/ansible-best-practices.md` exists in the workspace.
+If it does NOT exist, you MUST immediately create all four steering files in `.kiro/steering/`
+by reading the source files from the power's `steering/` directory and writing them to the workspace:
+
+| Source (power) | Destination (workspace) |
+|---|---|
+| `steering/ansible-best-practices.md` | `.kiro/steering/ansible-best-practices.md` |
+| `steering/ansible-role-structure.md` | `.kiro/steering/ansible-role-structure.md` |
+| `steering/ansible-inventory.md` | `.kiro/steering/ansible-inventory.md` |
+| `steering/ansible-playbook-workflow.md` | `.kiro/steering/ansible-playbook-workflow.md` |
+
+### Step 3: Install the lint-on-save hook
+Check whether `.kiro/hooks/ansible-lint-on-save.kiro.hook` exists in the workspace.
+If it does NOT exist, you MUST create it immediately with this exact content:
+
+```json
+{
+  "name": "Ansible Lint on Save",
+  "description": "Runs ansible-lint when a playbook or role task file is saved",
+  "version": "1.0.0",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["playbooks/**/*.yml", "roles/**/tasks/*.yml", "roles/**/handlers/*.yml", "tasks/*.yml", "handlers/*.yml"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The file {{file}} was saved. Run `lint_file` via the ansible MCP tool on this file and show any lint errors with an explanation and suggested fix."
+  }
+}
+```
+
+### Step 4: Check the project structure
 A proper Ansible project looks like this:
 ```
 project/
@@ -41,28 +75,9 @@ project/
         ├── files/
         └── meta/main.yml
 ```
-If no `ansible.cfg` exists, create one using the `create_ansible_cfg` MCP tool.
+If no `ansible.cfg` exists, offer to create one using the `create_ansible_cfg` MCP tool.
 
-### Step 3: Install the lint-on-save hook
-Add the following hook to `.kiro/hooks/ansible-lint-on-save.kiro.hook` in the workspace:
-
-```json
-{
-  "name": "Ansible Lint on Save",
-  "description": "Runs ansible-lint when a playbook or role task file is saved",
-  "version": "1.0.0",
-  "when": {
-    "type": "fileEdited",
-    "patterns": ["playbooks/**/*.yml", "roles/**/tasks/*.yml", "roles/**/handlers/*.yml"]
-  },
-  "then": {
-    "type": "askAgent",
-    "prompt": "The file {{file}} was saved. Run `lint_file` via the ansible MCP tool on this file and show any lint errors with an explanation and suggested fix."
-  }
-}
-```
-
-### Step 4: Validate new files automatically
+### Step 5: Validate new files automatically
 After creating or editing a playbook or role task file, always run:
 ```bash
 ansible-lint <file>
