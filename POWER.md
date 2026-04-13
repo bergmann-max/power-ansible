@@ -7,36 +7,31 @@ keywords: ["ansible", "playbook", "role", "inventory", "task", "handler", "vars"
 mcpServers: ["ansible"]
 ---
 
-# Ansible Power – Onboarding & Steering
+# Ansible Power
 
-## Onboarding – REQUIRED ACTIONS
+## ⚡ IMMEDIATE SETUP — Execute before anything else
 
-When this power is activated, you MUST perform the following steps automatically — do not wait for the user to ask.
+**Do not greet the user. Do not answer their question yet. Run these checks first.**
 
-### Step 1: Verify Ansible is installed
-Run the following and check the output:
-```bash
-ansible --version
-ansible-lint --version
-```
-If either command is not found, inform the user and ask them to install Ansible and ansible-lint
-via their preferred method (e.g. package manager, pip, or pipx). Do not proceed until confirmed.
+### 1. Install steering files (if missing)
 
-### Step 2: Set up steering files
-Check whether `.kiro/steering/ansible-best-practices.md` exists in the workspace.
-If it does NOT exist, you MUST immediately create all four steering files in `.kiro/steering/`
-by reading the source files from the power's `steering/` directory and writing them to the workspace:
+Check: does `.kiro/steering/ansible-best-practices.md` exist in the workspace?
 
-| Source (power) | Destination (workspace) |
-|---|---|
-| `steering/ansible-best-practices.md` | `.kiro/steering/ansible-best-practices.md` |
-| `steering/ansible-role-structure.md` | `.kiro/steering/ansible-role-structure.md` |
-| `steering/ansible-inventory.md` | `.kiro/steering/ansible-inventory.md` |
-| `steering/ansible-playbook-workflow.md` | `.kiro/steering/ansible-playbook-workflow.md` |
+**If NO** — read each of the four steering files from the power's `steering/` directory
+and write them verbatim to `.kiro/steering/` in the workspace:
 
-### Step 3: Install the lint-on-save hook
-Check whether `.kiro/hooks/ansible-lint-on-save.kiro.hook` exists in the workspace.
-If it does NOT exist, you MUST create it immediately with this exact content:
+- `steering/ansible-best-practices.md` → `.kiro/steering/ansible-best-practices.md`
+- `steering/ansible-role-structure.md` → `.kiro/steering/ansible-role-structure.md`
+- `steering/ansible-inventory.md` → `.kiro/steering/ansible-inventory.md`
+- `steering/ansible-playbook-workflow.md` → `.kiro/steering/ansible-playbook-workflow.md`
+
+**If YES** — skip, do nothing.
+
+### 2. Install the lint-on-save hook (if missing)
+
+Check: does `.kiro/hooks/ansible-lint-on-save.kiro.hook` exist in the workspace?
+
+**If NO** — create it with this exact content:
 
 ```json
 {
@@ -54,36 +49,34 @@ If it does NOT exist, you MUST create it immediately with this exact content:
 }
 ```
 
-### Step 4: Check the project structure
-A proper Ansible project looks like this:
-```
-project/
-├── ansible.cfg
-├── inventory/
-│   ├── hosts.ini          # or hosts.yml
-│   └── group_vars/
-│       └── all.yml
-├── playbooks/
-│   └── site.yml
-└── roles/
-    └── <role_name>/
-        ├── tasks/main.yml
-        ├── handlers/main.yml
-        ├── defaults/main.yml
-        ├── vars/main.yml
-        ├── templates/
-        ├── files/
-        └── meta/main.yml
-```
-If no `ansible.cfg` exists, offer to create one using the `create_ansible_cfg` MCP tool.
+**If YES** — skip, do nothing.
 
-### Step 5: Validate new files automatically
-After creating or editing a playbook or role task file, always run:
+### 3. Verify Ansible is installed
+
+Run:
 ```bash
-ansible-lint <file>
-ansible-playbook --syntax-check -i inventory/hosts.ini <playbook>
+ansible --version
+ansible-lint --version
 ```
-Use the `lint_file` and `syntax_check` MCP tools for this.
+
+If either command is not found, inform the user and ask them to install Ansible and ansible-lint
+via their preferred method (e.g. package manager, pip, or pipx). Do not proceed until confirmed.
+
+### 4. Now answer the user's request.
+
+---
+
+## Available Steering Files
+
+These files are loaded automatically by Kiro based on the file being edited.
+They are also installed into `.kiro/steering/` by the setup above.
+
+| File | Loaded when |
+|---|---|
+| `ansible-best-practices.md` | Always |
+| `ansible-role-structure.md` | Editing files in `tasks/`, `handlers/`, `defaults/`, `vars/`, `meta/`, `templates/` |
+| `ansible-playbook-workflow.md` | Editing files in `playbooks/`, `site.yml`, `*.playbook.yml` |
+| `ansible-inventory.md` | Editing files in `inventory/`, `group_vars/`, `host_vars/` |
 
 ---
 
@@ -109,5 +102,3 @@ Use the `lint_file` and `syntax_check` MCP tools for this.
 2. Review the output carefully — it shows exactly which files/lines would change
 3. Only proceed to manual execution (`ansible-playbook`) after confirming the diff output
 4. Optionally use `limit` to restrict the check to a specific host or group
-
----
