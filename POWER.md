@@ -83,22 +83,30 @@ They are also installed into `.kiro/steering/` by the setup above.
 ## Workflows
 
 ### Creating a new Playbook
-1. Ask which hosts/groups should be targeted
-2. Ask what tasks should be performed
-3. Use `create_playbook` tool to scaffold the file
-4. Always include `become: false` at play level unless root is explicitly needed
-5. Lint with `lint_file` after creation
-6. Run syntax check with `syntax_check`
+1. Ask which hosts/groups should be targeted and what tasks should be performed
+2. Write the playbook file directly to `playbooks/<name>.yml` using your file tools
+3. Follow the structure in the steering file `ansible-playbook-workflow.md`
+4. Lint with `lint_file` (MCP) after creation
+5. Run syntax check with `syntax_check` (MCP)
 
 ### Creating a new Role
-1. Use `create_role` tool to scaffold the full directory structure
-2. Put logic into `tasks/main.yml` using `include_tasks` for complex roles
-3. Define all variables with defaults in `defaults/main.yml`
-4. Document the role purpose in `meta/main.yml`
-5. Lint the entire role directory
+1. Write all role files directly using your file tools:
+   - `roles/<name>/tasks/main.yml`
+   - `roles/<name>/handlers/main.yml`
+   - `roles/<name>/defaults/main.yml`
+   - `roles/<name>/vars/main.yml`
+   - `roles/<name>/meta/main.yml`
+   - `roles/<name>/README.md`
+   - `roles/<name>/templates/` and `roles/<name>/files/` (empty dirs via `.gitkeep`)
+2. Follow the structure in the steering file `ansible-role-structure.md`
+3. Lint the entire role directory with `lint_file` (MCP)
+
+### Creating ansible.cfg / inventory
+1. Write the files directly using your file tools
+2. Follow the structure in the steering file `ansible-inventory.md`
 
 ### Previewing a Playbook (Diff-Check)
-1. Use `diff_check` tool to run the playbook with `--check --diff`
+1. Use `diff_check` (MCP) to run the playbook with `--check --diff`
 2. Review the output carefully — it shows exactly which files/lines would change
 3. Only proceed to manual execution (`ansible-playbook`) after confirming the diff output
 4. Optionally use `limit` to restrict the check to a specific host or group

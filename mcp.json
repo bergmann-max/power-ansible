@@ -7,19 +7,12 @@
         "git+https://github.com/bergmann-max/power-ansible",
         "ansible-mcp"
       ],
-      "env": {
-        "ANSIBLE_PROJECT_ROOT": "${workspaceFolder}"
-      },
+      "env": {},
       "autoApprove": [
-        "create_playbook",
-        "create_role",
-        "create_ansible_cfg",
         "lint_file",
         "syntax_check",
-        "list_roles",
-        "list_playbooks",
-        "show_role_tree",
-        "scaffold_inventory"
+        "diff_check",
+        "gather_facts"
       ]
     }
   }
