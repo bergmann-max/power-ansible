@@ -53,12 +53,14 @@ The power activates automatically when you use terms like `ansible`, `playbook`,
 | `syntax_check` | Check playbook syntax without executing |
 | `diff_check` | Dry-run with `--check --diff` to preview changes |
 | `gather_facts` | Collect all facts from a host via the setup module |
+| `list_hosts` | Show which hosts would be affected by a playbook |
+| `list_tags` | Show all tags defined in a playbook |
 
 ### Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `ANSIBLE_INVENTORY` | auto-detected | Override inventory path (skips auto-detection) |
+| `ANSIBLE_INVENTORY` | auto-detected | Override inventory |
 
 Inventory is resolved in this order: `ANSIBLE_INVENTORY` env var → `ansible.cfg [defaults] inventory` → common fallback paths (`hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.yml`, `inventory/hosts.yaml`, `inventory/hosts.ini`).
 
@@ -66,7 +68,48 @@ Inventory is resolved in this order: `ANSIBLE_INVENTORY` env var → `ansible.cf
 
 | File | When active | Content |
 |---|---|---|
-| `ansible-best-practices.md` | Always | Core principles, patterns, and reference for all Ansible development |
+| `ansible-best-practices.md` | Always | Core principles, patterns, and module reference |
 | `ansible-playbook-workflow.md` | For playbook files | Playbook creation workflow |
 | `ansible-role-structure.md` | For role files | Role structure and conventions |
 | `ansible-inventory.md` | For inventory files | Inventory layout and group_vars |
+| `ansible-vault.md` | For vault files | Secret management with ansible-vault |
+| `ansible-collections.md` | For requirements.yml | Community collections and Galaxy |
+
+## Troubleshooting
+
+### MCP tools not working
+1. Check server is running: `uvx ansible-mcp`
+2. Verify in Kiro: MCP Server view → ansible server status
+3. Check logs: stderr output in MCP panel
+4. Restart server: Powers Panel → ansible → Reconnect
+
+### Inventory not found
+Set explicitly via environment variable:
+```bash
+export ANSIBLE_INVENTORY=inventory/hosts.yml
+```
+
+Or configure in `ansible.cfg`:
+```ini
+[defaults]
+inventory = inventory/hosts.yml
+```
+
+### ansible-lint errors
+Run manually to see full output:
+```bash
+ansible-lint --profile production playbooks/
+```
+
+Check `.ansible-lint` config if rules need adjustment.
+
+### Connection issues
+Test connectivity:
+```bash
+ansible all -m ping -i inventory/hosts.yml
+```
+
+Common fixes:
+- Set `ansible_user` in inventory or group_vars
+- Verify SSH key: `ansible_ssh_private_key_file`
+- Add `become: true` for privilege escalation

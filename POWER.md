@@ -27,16 +27,17 @@ and write them verbatim to `.kiro/steering/` in the workspace:
 
 **If YES** — skip, do nothing.
 
-### 2. Verify Ansible is installed
+### 2. Verify the MCP server is running
 
-Run:
+`ansible-core` and `ansible-lint` are bundled as Python dependencies and installed automatically
+when the MCP server starts via `uvx`. No manual installation required.
+
+If MCP tools are failing, ask the user to confirm the server is running:
 ```bash
-ansible --version
-ansible-lint --version
+uvx ansible-mcp
 ```
 
-If either command is not found, inform the user and ask them to install Ansible and ansible-lint
-via their preferred method (e.g. package manager, pip, or pipx). Do not proceed until confirmed.
+Once confirmed, all tools (`ansible-playbook`, `ansible-lint`) will be available.
 
 ### 3. Now answer the user's request.
 
@@ -53,6 +54,8 @@ They are also installed into `.kiro/steering/` by the setup above.
 | `ansible-role-structure.md` | Editing files in `tasks/`, `handlers/`, `defaults/`, `vars/`, `meta/`, `templates/` |
 | `ansible-playbook-workflow.md` | Editing files in `playbooks/`, `site.yml`, `*.playbook.yml` |
 | `ansible-inventory.md` | Editing files in `inventory/`, `group_vars/`, `host_vars/` |
+| `ansible-vault.md` | Editing vault files (`*vault*.yml`) |
+| `ansible-collections.md` | Editing `requirements.yml`, `galaxy.yml` |
 
 ---
 

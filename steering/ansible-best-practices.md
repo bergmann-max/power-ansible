@@ -360,13 +360,20 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
 ## Common Modules Reference
 
 ### File Operations
-```yaml
-- ansible.builtin.file:       # directories, symlinks, permissions
-- ansible.builtin.copy:       # static files (backup: true recommended)
-- ansible.builtin.template:   # Jinja2 (validate: 'nginx -t -c %s')
-- ansible.builtin.lineinfile: # single line (regexp + line)
-- ansible.builtin.blockinfile: # multi-line block (set marker!)
-```
+- `ansible.builtin.file` – Create directories, symlinks, set permissions
+- `ansible.builtin.copy` – Copy static files (use `backup: true` for safety)
+- `ansible.builtin.template` – Process Jinja2 templates (use `validate:` for config files)
+- `ansible.builtin.lineinfile` – Modify single line in file (use `regexp:` + `line:`)
+- `ansible.builtin.blockinfile` – Insert/update multi-line block (set `marker:` to avoid conflicts)
+- `ansible.builtin.fetch` – Copy files from remote to local (inverse of `copy`)
+- `ansible.builtin.stat` – Get file/directory metadata (check existence, permissions, checksums)
+
+**When to use which:**
+- Static file → `copy`
+- Dynamic content → `template`
+- Single line edit → `lineinfile`
+- Multi-line block → `blockinfile`
+- Complex edits → `template` (don't fight with lineinfile)
 
 #### File Permissions – always use ugo format
 Always set `mode` explicitly using symbolic ugo notation instead of octal (e.g. `'0644'`).
@@ -385,13 +392,19 @@ mode: '0755'
 ```
 
 ### Package / Service
-```yaml
-- ansible.builtin.package:    # distro-agnostic (preferred)
-- ansible.builtin.apt:        # Debian/Ubuntu (update_cache: true)
-- ansible.builtin.dnf:        # RHEL/CentOS 8+ (yum is deprecated)
-- ansible.builtin.service:    # state + enabled
-- ansible.builtin.systemd:    # daemon_reload: true when needed
-```
+- `ansible.builtin.package` – Distro-agnostic package manager (preferred for cross-platform roles)
+- `ansible.builtin.apt` – Debian/Ubuntu (always set `update_cache: true` when installing)
+- `ansible.builtin.dnf` – RHEL/CentOS 8+ (replaces `yum`)
+- `ansible.builtin.yum` – RHEL/CentOS 7 and older (deprecated, use `dnf` for 8+)
+- `ansible.builtin.service` – Manage service state and enable/disable (cross-platform)
+- `ansible.builtin.systemd` – Systemd-specific features (use `daemon_reload: true` after unit file changes)
+- `ansible.builtin.systemd_service` – Alias for `systemd` (same module, different name)
+
+**When to use which:**
+- Cross-platform role → `package` + `service`
+- Debian-specific → `apt` (for `update_cache`, `autoremove`, etc.)
+- RHEL-specific → `dnf` (for `enablerepo`, `disablerepo`, etc.)
+- Systemd features → `systemd` (for `daemon_reload`, `masked`, etc.)
 
 ### package-latest – never use `state: latest` in production
 ```yaml
@@ -416,6 +429,23 @@ mode: '0755'
 ```
 
 ### Command Execution
+- `ansible.builtin.command` – Run commands without shell processing (preferred, safer)
+- `ansible.builtin.shell` – Run commands with shell features (pipes, redirects, wildcards)
+- `ansible.builtin.script` – Run local script on remote host
+- `ansible.builtin.raw` – Run command without Python (for bootstrapping)
+
+**When to use which:**
+- Simple command → `command` (no shell injection risk)
+- Pipes/redirects → `shell` (always use `set -o pipefail`)
+- Local script → `script` (easier than copying + executing)
+- No Python on target → `raw` (only for initial setup)
+
+**Critical rules:**
+- Always use `cmd:` key (no free-form)
+- Always set `changed_when:` (or `changed_when: false` for read-only)
+- Use `creates:` or `removes:` for idempotency when possible
+- Prefer Ansible modules over shell commands
+
 ```yaml
 # command: no shell processing → prefer this
 - ansible.builtin.command:

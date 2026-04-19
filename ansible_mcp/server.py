@@ -161,6 +161,44 @@ def gather_facts(host: str, project_root: str) -> dict:
     return _run(["ansible", "-i", str(inv), host, "-m", "setup"], cwd=root)
 
 
+@mcp.tool()
+def list_hosts(playbook: str, project_root: str, limit: str = "") -> dict:
+    """Lists all hosts that would be affected by a playbook run.
+
+    Args:
+        playbook:     Absolute path to the playbook file.
+        project_root: Absolute path to the Ansible project root (workspace folder).
+        limit:        Optional host limit, e.g. 'webservers' or 'web01.example.com'
+    """
+    root, err = _resolve_root(project_root)
+    if err:
+        return err
+    inv, err = _require_inventory(root)
+    if err:
+        return err
+    cmd = ["ansible-playbook", "--list-hosts", "-i", str(inv), playbook]
+    if limit:
+        cmd.extend(["--limit", limit])
+    return _run(cmd, cwd=root)
+
+
+@mcp.tool()
+def list_tags(playbook: str, project_root: str) -> dict:
+    """Lists all tags defined in a playbook.
+
+    Args:
+        playbook:     Absolute path to the playbook file.
+        project_root: Absolute path to the Ansible project root (workspace folder).
+    """
+    root, err = _resolve_root(project_root)
+    if err:
+        return err
+    inv, err = _require_inventory(root)
+    if err:
+        return err
+    return _run(["ansible-playbook", "--list-tags", "-i", str(inv), playbook], cwd=root)
+
+
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 def main():
