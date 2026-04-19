@@ -11,8 +11,8 @@
       "autoApprove": [
         "lint_file",
         "syntax_check",
-        "diff_check",
-        "gather_facts"
+        "list_hosts",
+        "list_tags"
       ]
     }
   }
