@@ -382,7 +382,7 @@ Always set `mode` explicitly using symbolic ugo notation instead of octal (e.g. 
 # ✅ Correct – ugo format
 mode: 'u=rw,g=r,o=r'      # equivalent to 0644
 mode: 'u=rwx,g=rx,o=rx'   # equivalent to 0755
-mode: 'u=rw,g=r,o='      # other has NO permissions (not o= or omitted)
+mode: 'u=rw,g=r,o='      # other has NO permissions (must write o=, don't omit)
 mode: 'u=rwx,g=-,o='     # only owner has access
 
 # ❌ Wrong – octal format

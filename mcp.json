@@ -7,7 +7,6 @@
         "git+https://github.com/bergmann-max/power-ansible",
         "ansible-mcp"
       ],
-      "env": {},
       "autoApprove": [
         "lint_file",
         "syntax_check",
