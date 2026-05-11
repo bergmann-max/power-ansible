@@ -6,9 +6,7 @@
 [![ansible-lint](https://img.shields.io/badge/ansible--lint-25.6-yellow)](https://docs.ansible.com/projects/lint/)
 [![License](https://img.shields.io/badge/license-Unlicense-green)](https://github.com/bergmann-max/power-ansible/blob/main/LICENSE)
 
-Build, lint, and validate Ansible playbooks and roles with best practices and idempotent design patterns.
-
-A [Kiro Power](https://kiro.dev) that provides an MCP server and steering files for Ansible development.
+A [Kiro Power](https://kiro.dev) that provides an MCP server and steering files for build, lint, and validate Ansible playbooks and roles with best practices.
 
 ## Prerequisites
 
