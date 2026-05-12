@@ -82,10 +82,20 @@ def _require_inventory(root: Path) -> tuple[Path | None, dict | None]:
     return inv, None
 
 
-def _run(cmd: list[str], cwd: Path) -> dict:
+def _run(cmd: list[str], cwd: Path, timeout: int = 60) -> dict:
     try:
-        r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=60)
+        r = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
         return {"ok": r.returncode == 0, "stdout": r.stdout.strip(), "stderr": r.stderr.strip()}
+    except subprocess.TimeoutExpired:
+        return {
+            "ok": False,
+            "stdout": "",
+            "stderr": (
+                f"Command timed out after {timeout}s: {' '.join(cmd)}\n"
+                "For large playbooks or many hosts, this is expected. "
+                "Consider using --limit to scope the operation."
+            ),
+        }
     except Exception as e:
         return {"ok": False, "stdout": "", "stderr": str(e)}
 
@@ -103,7 +113,7 @@ def lint_file(path: str, project_root: str) -> dict:
     root, err = _resolve_root(project_root)
     if err:
         return err
-    return _run(["ansible-lint", "--profile", "production", path], cwd=root)
+    return _run(["ansible-lint", "--profile", "production", path], cwd=root, timeout=60)
 
 
 @mcp.tool()
@@ -120,7 +130,7 @@ def syntax_check(playbook: str, project_root: str) -> dict:
     inv, err = _require_inventory(root)
     if err:
         return err
-    return _run(["ansible-playbook", "--syntax-check", "-i", str(inv), playbook], cwd=root)
+    return _run(["ansible-playbook", "--syntax-check", "-i", str(inv), playbook], cwd=root, timeout=60)
 
 
 @mcp.tool()
@@ -141,7 +151,7 @@ def diff_check(playbook: str, project_root: str, limit: str = "") -> dict:
     cmd = ["ansible-playbook", "--check", "--diff", "-i", str(inv), playbook]
     if limit:
         cmd.extend(["--limit", limit])
-    return _run(cmd, cwd=root)
+    return _run(cmd, cwd=root, timeout=300)
 
 
 @mcp.tool()
@@ -158,7 +168,7 @@ def gather_facts(host: str, project_root: str) -> dict:
     inv, err = _require_inventory(root)
     if err:
         return err
-    return _run(["ansible", "-i", str(inv), host, "-m", "setup"], cwd=root)
+    return _run(["ansible", "-i", str(inv), host, "-m", "setup"], cwd=root, timeout=300)
 
 
 @mcp.tool()

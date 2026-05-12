@@ -682,24 +682,6 @@ Use `.ansible-lint-ignore` for per-file suppressions instead of `skip_list`:
 playbooks/legacy.yml package-latest  # pinning not possible for this legacy role
 ```
 
-## Pre-commit Integration
-
-Add ansible-lint to `.pre-commit-config.yaml` to catch issues before every commit:
-
-```yaml
-# .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/ansible/ansible-lint
-    rev: v25.1.3   # pin to a specific release tag
-    hooks:
-      - id: ansible-lint
-```
-
-Run manually:
-```bash
-pre-commit run ansible-lint --all-files
-```
-
 ---
 **Remember:** Ansible is about declarative infrastructure — describe the **desired state**, not the steps to get there. Focus on **idempotency**, **clarity**, and **maintainability**.
 

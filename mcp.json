@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ansible": {
+    "power-ansible": {
       "command": "uvx",
       "args": [
         "--from",

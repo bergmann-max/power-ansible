@@ -46,6 +46,10 @@ See [POWER.md](POWER.md) for:
 
 ## Quick Reference
 
-**MCP Tools:** `lint_file`, `syntax_check`, `diff_check`, `gather_facts`, `list_hosts`, `list_tags`
+**MCP Server Name:** `power-ansible`
+
+**MCP Tools:**
+- Local: `lint_file`, `syntax_check`, `list_hosts`, `list_tags`
+- Requires SSH to target hosts: `diff_check`, `gather_facts`
 
 **Steering Files:** `ansible-best-practices.md`, `ansible-role-structure.md`, `ansible-playbook-workflow.md`, `ansible-inventory.md`, `ansible-vault.md`, `ansible-collections.md`

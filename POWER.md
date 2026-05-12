@@ -141,3 +141,94 @@ Read specific guides with: `action="readSteering", steeringFile="<name>.md"`
 1. Write the files directly using your file tools
 2. Follow the structure in the steering file `ansible-inventory.md`
 3. Verify inventory with `list_hosts` on any playbook
+
+---
+
+## Troubleshooting
+
+### MCP Server Won't Start
+
+**Symptom:** Power-ansible tools unavailable, MCP server shows as disconnected in Kiro.
+
+**Cause: `uv` / `uvx` not installed**
+```
+Error: command not found: uvx
+```
+Solution: Install `uv` — https://docs.astral.sh/uv/getting-started/installation/
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# or via pip
+pip install uv
+```
+After install, reconnect the MCP server from the Kiro MCP Server panel.
+
+**Cause: Python version too old**
+```
+Error: requires Python >=3.10
+```
+Solution: `uvx` picks the system Python. Install Python 3.10+ and ensure it is on `PATH`, or set `UV_PYTHON` env var:
+```bash
+UV_PYTHON=python3.11 uvx ansible-mcp
+```
+
+**Cause: Git not installed (GitHub source install)**
+```
+Error: failed to clone repository
+```
+Solution: Install git and ensure it is on `PATH`.
+
+---
+
+### First-Run Dependency Install Fails
+
+**Symptom:** First tool call hangs or fails with pip/build errors.
+
+`uvx` downloads and installs `ansible-core`, `ansible-lint`, and `mcp` on first run. This requires internet access and may take 30–60 seconds.
+
+- Check internet connectivity
+- Check for corporate proxy: set `HTTP_PROXY` / `HTTPS_PROXY` env vars in `mcp.json`
+- Re-trigger by reconnecting the MCP server from the Kiro MCP Server panel
+
+---
+
+### Tool Call Returns "project_root not found"
+
+**Symptom:**
+```
+Error: project_root '/path/to/project' does not exist
+```
+
+All tools require `project_root` to be an **absolute path** to an existing Ansible workspace directory.
+
+- Use the absolute path, not a relative one
+- Ensure the directory exists before calling any tool
+
+---
+
+### `lint_file` Reports No Rules / Empty Output
+
+**Cause:** No `.ansible-lint` config found — ansible-lint falls back to minimal profile.
+
+Solution: Add `.ansible-lint` to the project root. Minimal config:
+```yaml
+profile: production
+offline: true
+```
+See `ansible-best-practices.md` for full recommended config.
+
+---
+
+### `syntax_check` Passes but `lint_file` Fails
+
+Expected behavior — `syntax_check` only validates YAML structure and Ansible syntax. `lint_file` enforces best-practice rules (FQCN, idempotency, naming). Fix lint violations before considering a playbook production-ready.
+
+---
+
+### `diff_check` / `gather_facts` Require SSH Access
+
+`diff_check` and `gather_facts` connect to real hosts. Ensure:
+- SSH key or password auth is configured
+- `ansible_user` is set in inventory or `ansible.cfg`
+- Target hosts are reachable from the machine running Kiro
