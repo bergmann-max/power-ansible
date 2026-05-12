@@ -4,7 +4,7 @@
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/bergmann-max/power-ansible",
+        "git+https://github.com/bergmann-max/power-ansible@0.2.0",
         "ansible-mcp"
       ],
       "autoApprove": [
