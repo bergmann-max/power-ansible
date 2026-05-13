@@ -1,5 +1,6 @@
 # Kiro Power: Ansible
 
+[![Release](https://img.shields.io/github/v/tag/bergmann-max/power-ansible?label=release&color=blue&sort=semver)](https://github.com/bergmann-max/power-ansible/tags)
 [![Kiro Power](https://img.shields.io/badge/kiro-power-9046FF)](https://kiro.dev/docs/powers/)
 [![FastMCP](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/bergmann-max/power-ansible/main/pyproject.toml&query=%24.project.dependencies%5B0%5D&label=fastmcp&color=5468FF&logo=python&logoColor=white)](https://github.com/jlowin/fastmcp)
 [![Ansible](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/bergmann-max/power-ansible/main/pyproject.toml&query=%24.project.dependencies%5B1%5D&label=ansible--core&color=red&logo=ansible&logoColor=white)](https://docs.ansible.com/projects/ansible)
