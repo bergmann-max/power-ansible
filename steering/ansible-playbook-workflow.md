@@ -1,8 +1,3 @@
----
-inclusion: fileMatch
-fileMatchPattern: "{playbooks/**/*.yml,site.yml,*.playbook.yml}"
----
-
 # Ansible Playbook Workflow
 
 ## Required Structure of Every Playbook

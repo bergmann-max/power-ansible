@@ -1,8 +1,3 @@
----
-inclusion: fileMatch
-fileMatchPattern: "{requirements.yml,collections/requirements.yml,galaxy.yml}"
----
-
 # Ansible Collections – Community Modules & Roles
 
 ## Overview

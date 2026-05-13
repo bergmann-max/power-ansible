@@ -1,8 +1,3 @@
----
-inclusion: fileMatch
-fileMatchPattern: "{tasks,handlers,defaults,vars,meta,templates}/**"
----
-
 # Ansible Role Structure & Conventions
 
 ## Directory Structure (Required)

@@ -1,8 +1,3 @@
----
-inclusion: fileMatch
-fileMatchPattern: "{inventory/**,group_vars/**,host_vars/**,**/hosts.yml,**/hosts.ini}"
----
-
 # Ansible Inventory Conventions
 
 ## Inventory Format: INI vs. YAML

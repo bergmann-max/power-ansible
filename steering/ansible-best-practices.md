@@ -1,7 +1,3 @@
----
-inclusion: always
----
-
 # Ansible Development – Best Practices & Reference
 
 ## Overview

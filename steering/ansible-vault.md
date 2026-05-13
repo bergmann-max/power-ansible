@@ -1,8 +1,3 @@
----
-inclusion: fileMatch
-fileMatchPattern: "{group_vars/**/*vault*,host_vars/**/*vault*,**/*vault*.yml}"
----
-
 # Ansible Vault – Secret Management
 
 ## Overview
