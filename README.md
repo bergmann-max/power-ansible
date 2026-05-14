@@ -56,15 +56,6 @@ git clone https://github.com/bergmann-max/power-ansible.git
 ```
 Then in Kiro Powers Panel → "Add Custom Power" → "Local Directory" → provide path
 
-## Configuration
-
-No configuration required. Optional: set `ANSIBLE_INVENTORY` for custom inventory path.
-
-Inventory resolution order:
-1. `ANSIBLE_INVENTORY` env var
-2. `ansible.cfg` → `[defaults] inventory`
-3. Fallback paths: `hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.*`
-
 ## Documentation
 
 See [POWER.md](POWER.md) for workflows, tool argument reference, and troubleshooting.
