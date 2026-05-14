@@ -1,23 +1,22 @@
-# Ansible Inventory Conventions
+# Ansible Inventory – Project Conventions
 
-## Inventory Format: INI vs. YAML
+For inventory plugin reference and dynamic-inventory full docs see
+<https://docs.ansible.com/ansible/latest/inventory_guide/>.
 
-Both formats are fully supported. Choose based on your project size and preference:
+## Format
 
-- `hosts.ini` – simple, compact, good for small projects and quick scaffolding
-- `hosts.yml` – more expressive, better for complex group hierarchies and larger projects
+- `hosts.ini` for small projects / quick scaffolds.
+- `hosts.yml` for nested groups and larger projects.
 
-### INI (default for scaffolding)
-```ini
-[webservers]
-web01.example.com
-web02.example.com
+The MCP tools resolve inventory in this order (see `POWER.md`):
+1. `ANSIBLE_INVENTORY` env var
+2. `ansible.cfg` `[defaults] inventory =`
+3. Fallback paths: `hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.*`
 
-[dbservers]
-db01.example.com
-```
+## YAML inventory with environments
 
-## YAML Structure (recommended for larger projects)
+Use `children:` to compose environment groups out of functional groups. This
+is the recommended layout for any project that has more than one environment.
 
 ```yaml
 # inventory/hosts.yml
@@ -26,118 +25,101 @@ all:
   children:
     webservers:
       hosts:
-        web01.example.com:   # FQDN as name – no ansible_host needed
+        web01.example.com:    # FQDN as the inventory key — no ansible_host needed
         web02.example.com:
+      vars:
+        nginx_port: 80
+
     dbservers:
       hosts:
         db01.example.com:
+          postgresql_version: 14
 
-    # Environment groups
     production:
       children:
         webservers:
         dbservers:
+
     staging:
       hosts:
         staging01.example.com:
 ```
 
-### When to use `ansible_host`
+## `ansible_host` rule
 
-`ansible_host` is only needed when the inventory name is not directly reachable — e.g. a logical alias, a host without a DNS entry, or an internal hostname that differs from the connection target.
+Only set `ansible_host` when the inventory name is **not** the real DNS name —
+i.e. an alias, an IP-only host, or a name that differs from the connection
+target. Otherwise omit it; the FQDN inventory key is the connection target.
 
 ```yaml
-# ansible_host useful: alias in inventory, connecting via IP or different hostname
 all:
   hosts:
-    db-primary:                        # logical name in inventory
-      ansible_host: db01.example.com   # actual hostname used for the connection
+    db-primary:                        # logical alias
+      ansible_host: db01.example.com
     legacy-app:
-      ansible_host: 10.0.3.15          # no DNS entry available
+      ansible_host: 10.0.3.15          # no DNS entry
 ```
 
-## group_vars/ Structure
+## Group naming
 
-```
-inventory/
-└── group_vars/
-    ├── all.yml             # Applies to all hosts
-    ├── all/                # Split into multiple files (when using Vault)
-    │   ├── vars.yml
-    │   └── vault.yml       # ansible-vault encrypted
-    ├── webservers.yml
-    ├── dbservers.yml
-    └── production.yml
-```
+- Lowercase, underscores: `web_servers`, not `WebServers`.
+- Functional groups: `webservers`, `dbservers`, `loadbalancers`.
+- Environment groups: `production`, `staging`, `development`.
+- Combined groups via `children:`, not by flattening names where possible.
 
-## host_vars/ – Host-specific Variables
+## Vars layout
 
 ```
 inventory/
+├── hosts.yml
+├── group_vars/
+│   ├── all.yml
+│   ├── all/                # split when using vault
+│   │   ├── vars.yml
+│   │   └── vault.yml
+│   └── webservers.yml
 └── host_vars/
     └── web01.example.com/
         ├── vars.yml
         └── vault.yml
 ```
 
-## ansible.cfg Inventory Setting
+Use the directory form (`group_vars/<group>/vars.yml` + `vault.yml`) whenever
+the group has any vault-encrypted variables.
 
-```ini
-[defaults]
-inventory = inventory/hosts.yml
-```
+## Multi-inventory (static + dynamic)
 
-Or multiple inventories:
-```ini
-inventory = inventory/production:inventory/staging
-```
-
-## Naming Conventions for Groups
-- Lowercase, underscores: `web_servers` ✅, `WebServers` ❌
-- Functional: `webservers`, `dbservers`, `loadbalancers`
-- Environment: `production`, `staging`, `development`
-- Combined (child groups): `prod_webservers`
-
-## Dynamic Inventory
-
-For cloud environments or frequently changing infrastructure, use dynamic inventory scripts or plugins instead of static files.
-
-### Plugin-based (recommended)
-```yaml
-# inventory/aws_ec2.yml
-plugin: amazon.aws.aws_ec2
-regions:
-  - eu-central-1
-filters:
-  instance-state-name: running
-keyed_groups:
-  - key: tags.Role
-    prefix: role
-  - key: tags.Environment
-    prefix: env
-compose:
-  ansible_host: public_ip_address
-```
+Point `inventory =` at a directory; Ansible merges every file inside. Or list
+files explicitly with `:` separators.
 
 ```ini
 # ansible.cfg
 [defaults]
-inventory = inventory/aws_ec2.yml
-enable_plugins = amazon.aws.aws_ec2
-```
-
-### Mixing Static and Dynamic
-```ini
-# ansible.cfg – comma-separated or directory-based
-[defaults]
+inventory = inventory/                                # directory mode
+# or
 inventory = inventory/static/hosts.yml:inventory/aws_ec2.yml
 ```
 
-Or use a directory — Ansible merges all files automatically:
+## Dynamic inventory
+
+Use plugins, not legacy scripts.
+
+```yaml
+# inventory/aws_ec2.yml
+plugin: amazon.aws.aws_ec2
+regions: [eu-central-1]
+filters:
+  instance-state-name: running
+keyed_groups:
+  - { key: tags.Role, prefix: role }
+  - { key: tags.Environment, prefix: env }
+compose:
+  ansible_host: public_ip_address
 ```
-inventory/
-├── static_hosts.yml      # static
-├── aws_ec2.yml           # dynamic plugin
-└── group_vars/
-    └── all.yml
+
+Enable the plugin in `ansible.cfg`:
+```ini
+[defaults]
+inventory = inventory/
+enable_plugins = amazon.aws.aws_ec2
 ```

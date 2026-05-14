@@ -1,75 +1,40 @@
-# Ansible Development – Best Practices & Reference
+# Ansible Best Practices – Project Conventions
 
-## Overview
-This steering file provides best practices for infrastructure as code, proper YAML formatting, idempotent task design, and effective use of Ansible's features.
+Project-specific rules and the `ansible-lint` violations the `lint_file` tool
+will surface. For general Ansible concepts see:
+<https://docs.ansible.com/ansible/latest/>.
 
-## Core Concepts
+## Hard rules in this project
 
-### Directory Structure
-Standard Ansible project layout:
-```
-ansible-project/
-├── ansible.cfg
-├── inventory/
-│   ├── production/
-│   │   ├── hosts.yml
-│   │   └── group_vars/
-│   └── staging/
-│       ├── hosts.yml
-│       └── group_vars/
-├── playbooks/
-│   ├── site.yml
-│   ├── webservers.yml
-│   └── databases.yml
-├── roles/
-│   ├── common/
-│   │   ├── tasks/
-│   │   ├── handlers/
-│   │   ├── templates/
-│   │   ├── files/
-│   │   ├── vars/
-│   │   ├── defaults/
-│   │   └── meta/
-│   └── nginx/
-└── group_vars/
-    ├── all.yml
-    └── webservers.yml
-```
+1. **FQCN only** — every module call uses `ansible.builtin.<name>` (or
+   `<collection>.<name>` for non-builtin). Lint: `fqcn[action]`.
+2. **Mode is ugo, never octal** — `mode: 'u=rw,g=r,o=r'`, not `'0644'`. The
+   `o=` part is mandatory even when other has no permissions
+   (`mode: 'u=rw,g=r,o='`).
+3. **Pin versions** — `state: present` with a pinned version, never
+   `state: latest`. Lint: `package-latest`.
+4. **Every task has a name** — uppercase first character. Lint:
+   `name[missing]`, `name[casing]`.
+5. **`command`/`shell` must use `cmd:` key** — no free-form args. Lint:
+   `no-free-form`. Always set `changed_when:` (use `false` for read-only).
+   Lint: `no-changed-when`.
+6. **No implicit type coercion** — use Jinja filters (e.g. `to_json`) when
+   passing dicts/lists. Lint: `avoid-implicit`.
+7. **Tags everywhere** — every task gets at least one tag for `--tags`
+   filtering.
+8. **Truthy literals** — `true`/`false` only, never `yes/no/True/False`.
+   Lint: `yaml[truthy]`.
+9. **Role variable naming** — role vars must be prefixed with the role name.
+   Lint: `var-naming[no-role-prefix]`.
 
-## Best Practices
+## Play skeleton
 
-### 1. Idempotency
-**Critical Rule:** Every task should be idempotent - running it multiple times should produce the same result without unintended side effects.
-
-```yaml
-# ✅ Idempotent - uses ansible.builtin.package
-- name: Ensure nginx is installed
-  ansible.builtin.package:
-    name: nginx
-    state: present
-
-# ✅ Idempotent - uses creates parameter
-- name: Download application
-  ansible.builtin.command:
-    cmd: wget https://example.com/app.tar.gz
-    creates: /opt/app.tar.gz
-
-# ❌ Not idempotent - always executes
-- name: Download application
-  ansible.builtin.command:
-    cmd: wget https://example.com/app.tar.gz
-
-# ❌ Not idempotent - always appends
-- name: Add line to file
-  ansible.builtin.shell: echo "config=value" >> /etc/app.conf
-```
-
-### 2. YAML Formatting
 ```yaml
 ---
 - name: Configure web servers
   hosts: webservers
   become: true
+  tags: [webservers]
 
   vars:
     nginx_port: 80
@@ -78,8 +43,9 @@ ansible-project/
   tasks:
     - name: Install nginx
       ansible.builtin.package:
-        name: nginx
+        name: nginx-1.24.0
         state: present
+      tags: [packages]
       notify: Restart nginx
 
     - name: Copy nginx configuration
@@ -89,6 +55,7 @@ ansible-project/
         owner: root
         group: root
         mode: 'u=rw,g=r,o=r'
+      tags: [config]
       notify: Restart nginx
 
   handlers:
@@ -98,235 +65,252 @@ ansible-project/
         state: restarted
 ```
 
-### 3. Module Usage – Always use FQCN
-```yaml
-# ✅ Good - FQCN format (required)
-- name: Create directory
-  ansible.builtin.file:
-    path: /opt/app
-    state: directory
-    mode: 'u=rwx,g=rx,o=rx'
+## Idempotency — the critical rule
 
-# ⚠️ Acceptable but not recommended
-- name: Create directory
-  file:
-    path: /opt/app
-    state: directory
+Every task must produce the same outcome on the 2nd run as the 1st. Use
+module state semantics (`state: present/absent`) or `creates:`/`removes:` on
+`command`/`shell`.
+
+```yaml
+# ✅ Idempotent — package module
+- ansible.builtin.package: { name: nginx, state: present }
+
+# ✅ Idempotent — creates: marker
+- ansible.builtin.command:
+    cmd: wget https://example.com/app.tar.gz -O /opt/app.tar.gz
+    creates: /opt/app.tar.gz
+
+# ❌ Not idempotent — re-downloads every run
+- ansible.builtin.command:
+    cmd: wget https://example.com/app.tar.gz
+
+# ❌ Not idempotent — keeps appending
+- ansible.builtin.shell: echo "config=value" >> /etc/app.conf
 ```
 
-### 4. Variable Precedence (lowest → highest)
-1. role defaults
-2. inventory file/script group vars
-3. inventory group_vars/all
-4. playbook group_vars/all
-5. inventory group_vars/*
-6. playbook group_vars/*
-7. inventory host_vars/*
-8. playbook host_vars/*
-9. host facts / cached set_facts
-10. play vars / vars_prompt / vars_files
-11. role vars
-12. block vars / task vars
-13. include_vars / set_facts / registered vars
-14. extra vars (always win)
+## Variable precedence (lowest → highest)
 
-### 5. Error Handling
+Top of the list is weakest, bottom always wins.
+
+1. role defaults (`roles/*/defaults/main.yml`)
+2. inventory file/script group vars
+3. inventory `group_vars/all`
+4. playbook `group_vars/all`
+5. inventory `group_vars/*`
+6. playbook `group_vars/*`
+7. inventory `host_vars/*`
+8. playbook `host_vars/*`
+9. host facts / cached `set_facts`
+10. play vars / `vars_prompt` / `vars_files`
+11. role vars (`roles/*/vars/main.yml`)
+12. block vars / task vars
+13. `include_vars` / `set_facts` / registered vars
+14. extra vars (`-e`) — always win
+
+## Error handling
+
 ```yaml
-# Use failed_when for custom failure conditions
+# Custom failure condition
 - name: Run command
-  ansible.builtin.command:
-    cmd: /usr/bin/mycommand
+  ansible.builtin.command: { cmd: /usr/bin/mycommand }
   register: result
   failed_when: "'ERROR' in result.stderr"
 
-# Use changed_when to control change status
+# Read-only command — never marks changed
 - name: Check configuration
-  ansible.builtin.command:
-    cmd: /usr/bin/check_config
+  ansible.builtin.command: { cmd: /usr/bin/check_config }
   register: config_check
   changed_when: false
 
-# Use blocks for error handling
-- name: Handle errors with blocks
+# block / rescue / always
+- name: Risky workflow
   block:
     - name: Risky task
-      ansible.builtin.command:
-        cmd: /usr/bin/risky_operation
+      ansible.builtin.command: { cmd: /usr/bin/risky_operation }
   rescue:
     - name: Handle failure
-      ansible.builtin.debug:
-        msg: "Operation failed, running recovery"
+      ansible.builtin.debug: { msg: "Operation failed, running recovery" }
   always:
-    - name: Always runs
-      ansible.builtin.debug:
-        msg: "Cleanup complete"
+    - name: Cleanup
+      ansible.builtin.debug: { msg: "Cleanup complete" }
 ```
 
-## Common Patterns
+## Lint anti-patterns
 
-### no-handler – use `notify` instead of `when: result.changed`
+### `no-handler` — use `notify`, not `when: result.changed`
+
 ```yaml
-# ❌ no-handler violation – acts as a handler but isn't one
-- name: Copy config
-  ansible.builtin.copy:
-    src: nginx.conf
-    dest: /etc/nginx/nginx.conf
-    mode: 'u=rw,g=r,o=r'
+# ❌
+- ansible.builtin.copy: { src: nginx.conf, dest: /etc/nginx/nginx.conf, mode: 'u=rw,g=r,o=r' }
   register: result
+- ansible.builtin.service: { name: nginx, state: restarted }
+  when: result.changed
 
-- name: Restart nginx
-  ansible.builtin.service:
-    name: nginx
-    state: restarted
-  when: result.changed   # <- no-handler violation
-
-# ✅ Correct – use notify + handler
-- name: Copy config
-  ansible.builtin.copy:
-    src: nginx.conf
-    dest: /etc/nginx/nginx.conf
-    mode: 'u=rw,g=r,o=r'
+# ✅
+- ansible.builtin.copy: { src: nginx.conf, dest: /etc/nginx/nginx.conf, mode: 'u=rw,g=r,o=r' }
   notify: Restart nginx
 ```
 
-### no-log-password – protect secrets in loops (opt-in rule)
-```yaml
-# ❌ Passwords in loops get logged
-- name: Create users
-  ansible.builtin.user:
-    name: "{{ item.name }}"
-    password: "{{ item.password }}"
-  loop: "{{ users }}"
+### `partial-become` — `become_user` requires `become: true` at the same level
 
-# ✅ Always set no_log: true when looping over sensitive data
-- name: Create users
-  ansible.builtin.user:
+```yaml
+# ✅
+- ansible.builtin.service: { name: myapp, state: started }
+  become: true
+  become_user: appuser
+```
+
+### `risky-shell-pipe` — `set -o pipefail` when piping in `shell:`
+
+```yaml
+- ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      cat /etc/hosts | grep localhost
+    executable: /bin/bash
+  changed_when: false
+```
+
+### `no-log-password` — `no_log: true` when looping over secrets
+
+```yaml
+- ansible.builtin.user:
     name: "{{ item.name }}"
     password: "{{ item.password }}"
   loop: "{{ users }}"
   no_log: true
 ```
 
-### avoid-implicit – always use explicit Jinja2 for non-string values
+### `avoid-implicit` — explicit Jinja for non-string values
+
 ```yaml
-# ❌ avoid-implicit violation – dict passed directly to copy.content
-- name: Write config file
-  ansible.builtin.copy:
+# ❌
+- ansible.builtin.copy:
     content: { "key": "value" }
     dest: /tmp/config.json
 
-# ✅ Explicit Jinja2 filter
-- name: Write config file
-  vars:
-    config: { "key": "value" }
+# ✅
+- vars: { config: { "key": "value" } }
   ansible.builtin.copy:
     content: "{{ config | to_json }}"
     dest: /tmp/config.json
 ```
 
-### Conditional Execution
-```yaml
-- name: Install package on RedHat family
-  ansible.builtin.dnf:
-    name: httpd
-    state: present
-  when: ansible_os_family == "RedHat"
+### `import-task-no-when` — `when:` on `import_tasks` is evaluated once
 
-# Multiple conditions
-- name: Complex conditional
-  ansible.builtin.debug:
-    msg: "This runs on Ubuntu 20.04+"
-  when:
-    - ansible_distribution == "Ubuntu"
-    - ansible_distribution_version is version('20.04', '>=')
+Use `include_tasks` when the condition depends on runtime state.
+
+### `when:` may only reference facts / registered vars
+
+```yaml
+# ✅
+- ansible.builtin.package: { name: nginx, state: present }
+  when: ansible_os_family == "Debian"
+
+# ✅
+- ansible.builtin.service: { name: nginx, state: restarted }
+  when: config_result.changed
+
+# ❌ shell-command-in-when — fragile and not declarative
+- ansible.builtin.debug: { msg: "exists" }
+  when: "{{ lookup('pipe', 'test -f /etc/nginx/nginx.conf') }}"
 ```
 
-### Loops – use `loop:` not `with_items:`
-```yaml
-# ✅ Modern loop
-- name: Install multiple packages
-  ansible.builtin.package:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - nginx
-    - postgresql
-    - redis
+## Loops
 
-# Loop with dictionary
-- name: Create multiple users
+Use `loop:`, never `with_items:`. Always set `loop_control.label` so progress
+output stays readable.
+
+```yaml
+- name: Create users
   ansible.builtin.user:
     name: "{{ item.name }}"
     groups: "{{ item.groups }}"
     state: present
   loop:
-    - { name: 'alice', groups: 'admin,developers' }
-    - { name: 'bob', groups: 'developers' }
+    - { name: alice, groups: admin,developers }
+    - { name: bob,   groups: developers }
   loop_control:
     label: "{{ item.name }}"
 ```
 
-### Jinja2 Templates
-```jinja2
-{# templates/nginx.conf.j2 #}
-{# Managed by Ansible – manual changes will be overwritten! #}
-user {{ nginx_user }};
-worker_processes {{ ansible_processor_vcpus }};
+In roles, prefix the loop variable to avoid collisions with outer loops
+(see `ansible-role-structure.md`).
 
-{% if nginx_ssl_enabled %}
-ssl_protocols TLSv1.2 TLSv1.3;
-ssl_certificate {{ nginx_ssl_cert }};
-{% endif %}
+## Module choice cheatsheet
 
-upstream backend {
-{% for host in groups['backend_servers'] %}
-    server {{ hostvars[host]['ansible_default_ipv4']['address'] }}:8080;
-{% endfor %}
-}
-```
+| Need | Use | Notes |
+|---|---|---|
+| Static file | `ansible.builtin.copy` | `backup: true` for safety |
+| Dynamic content | `ansible.builtin.template` | `validate:` for config files |
+| Single line edit | `ansible.builtin.lineinfile` | |
+| Multi-line block | `ansible.builtin.blockinfile` | set `marker:` |
+| Cross-platform pkg | `ansible.builtin.package` | |
+| Cross-platform svc | `ansible.builtin.service` | |
+| Systemd-only | `ansible.builtin.systemd` | `daemon_reload: true` after unit changes |
+| Simple command | `ansible.builtin.command` | always `cmd:` + `changed_when:` |
+| Pipes/redirects | `ansible.builtin.shell` | `set -o pipefail` |
+| Run local script remotely | `ansible.builtin.script` | use `creates:` |
+| No Python on target | `ansible.builtin.raw` | only for bootstrap |
 
-## Secrets – Never in Plain Text
-```yaml
-# ❌ Never
-db_password: "supersecret123"
+## Tag strategy
 
-# ✅ With ansible-vault
-db_password: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  ...
+Tags drive `--tags` / `--skip-tags`. Two special tags:
 
-# ✅ From environment variable
-db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
-
-# ✅ From HashiCorp Vault
-db_password: "{{ lookup('hashi_vault', 'secret=secret/db:password') }}"
-
-# ✅ CI/CD secret (injected as env var by the pipeline, same as above but common pattern)
-db_password: "{{ lookup('env', 'CI_DB_PASSWORD') }}"
-```
-
-## Debugging
-```bash
-ansible-playbook playbook.yml -v      # Basic verbosity
-ansible-playbook playbook.yml -vvv    # Connection debugging
-ansible-playbook playbook.yml --check --diff   # Dry-run + diff
-ansible-playbook playbook.yml --start-at-task="Install nginx"
-ansible-playbook playbook.yml --tags "configuration"
-ansible-playbook playbook.yml --skip-tags "testing"
-```
+- `always` — runs regardless of `--tags` filter.
+- `never` — runs only when explicitly listed in `--tags`.
 
 ```yaml
-- name: Show all facts
-  ansible.builtin.debug:
-    var: ansible_facts
+tasks:
+  - name: Pre-flight assertions
+    ansible.builtin.assert: { that: ["app_user is defined"] }
+    tags: [always]
 
-- name: Show specific variable
-  ansible.builtin.debug:
-    msg: "The value is {{ my_variable }}"
-    verbosity: 1   # only visible with -v
+  - name: Install packages
+    ansible.builtin.package: { name: nginx, state: present }
+    tags: [packages, nginx]
+
+  - name: Destructive test
+    ansible.builtin.command: { cmd: /usr/local/bin/test_nginx.sh }
+    changed_when: false
+    tags: [never, testing]   # only on --tags testing
 ```
 
-## Performance Optimization
+## Async tasks (long-running operations)
+
+```yaml
+- name: Long running operation
+  ansible.builtin.command: { cmd: /usr/bin/long_process }
+  async: 3600
+  poll: 0
+  register: long_task
+
+- name: Wait for completion
+  ansible.builtin.async_status:
+    jid: "{{ long_task.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 30
+  delay: 10
+```
+
+## Privilege escalation
+
+```yaml
+# Play-wide
+- hosts: all
+  become: true
+  become_method: sudo
+
+# Per-task — both keys at the same level
+- name: Start as app user
+  ansible.builtin.service: { name: myapp, state: started }
+  become: true
+  become_user: appuser
+```
+
+## Performance
+
 ```ini
 # ansible.cfg
 [defaults]
@@ -339,346 +323,70 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=60s
 ```
 
 ```yaml
-# Disable fact gathering when not needed
-- name: Quick task
-  hosts: all
+# Skip facts when not needed
+- hosts: all
   gather_facts: false
 
-# Gather specific facts only (gather_subset is a play-level keyword)
-- name: Selective facts
-  hosts: all
+# Or gather only what you need
+- hosts: all
   gather_facts: true
   gather_subset:
-    - '!all'
+    - "!all"
     - network
 ```
 
-## Common Modules Reference
+## Secrets
 
-### File Operations
-- `ansible.builtin.file` – Create directories, symlinks, set permissions
-- `ansible.builtin.copy` – Copy static files (use `backup: true` for safety)
-- `ansible.builtin.template` – Process Jinja2 templates (use `validate:` for config files)
-- `ansible.builtin.lineinfile` – Modify single line in file (use `regexp:` + `line:`)
-- `ansible.builtin.blockinfile` – Insert/update multi-line block (set `marker:` to avoid conflicts)
-- `ansible.builtin.fetch` – Copy files from remote to local (inverse of `copy`)
-- `ansible.builtin.stat` – Get file/directory metadata (check existence, permissions, checksums)
+Never plain text in repo. Use one of:
 
-**When to use which:**
-- Static file → `copy`
-- Dynamic content → `template`
-- Single line edit → `lineinfile`
-- Multi-line block → `blockinfile`
-- Complex edits → `template` (don't fight with lineinfile)
+- `ansible-vault` encrypted strings (see `ansible-vault.md`)
+- `lookup('env', 'VAR')`
+- `lookup('hashi_vault', 'secret=...')`
 
-#### File Permissions – always use ugo format
-Always set `mode` explicitly using symbolic ugo notation instead of octal (e.g. `'0644'`).
+## `.ansible-lint` baseline
 
 ```yaml
-# ✅ Correct – ugo format
-mode: 'u=rw,g=r,o=r'      # equivalent to 0644
-mode: 'u=rwx,g=rx,o=rx'   # equivalent to 0755
-mode: 'u=rw,g=r,o='      # other has NO permissions (must write o=, don't omit)
-mode: 'u=rwx,g=-,o='     # only owner has access
-
-# ❌ Wrong – octal format
-mode: '0644'
-mode: '0755'
+profile: production
+offline: true
+enable_list:
+  - no-log-password
+  - args
+loop_var_prefix: "^(__|{role}_)"
+var_naming_pattern: "^[a-z_][a-z0-9_]*$"
 ```
 
-### Package / Service
-- `ansible.builtin.package` – Distro-agnostic package manager (preferred for cross-platform roles)
-- `ansible.builtin.apt` – Debian/Ubuntu (always set `update_cache: true` when installing)
-- `ansible.builtin.dnf` – RHEL/CentOS 8+ (replaces `yum`)
-- `ansible.builtin.yum` – RHEL/CentOS 7 and older (deprecated, use `dnf` for 8+)
-- `ansible.builtin.service` – Manage service state and enable/disable (cross-platform)
-- `ansible.builtin.systemd` – Systemd-specific features (use `daemon_reload: true` after unit file changes)
-- `ansible.builtin.systemd_service` – Alias for `systemd` (same module, different name)
+Per-file suppressions go in `.ansible-lint-ignore`, not `skip_list`.
 
-**When to use which:**
-- Cross-platform role → `package` + `service`
-- Debian-specific → `apt` (for `update_cache`, `autoremove`, etc.)
-- RHEL-specific → `dnf` (for `enablerepo`, `disablerepo`, etc.)
-- Systemd features → `systemd` (for `daemon_reload`, `masked`, etc.)
-
-### package-latest – never use `state: latest` in production
-```yaml
-# ❌ package-latest violation – unpredictable, may upgrade unintended packages
-- name: Install nginx
-  ansible.builtin.package:
-    name: nginx
-    state: latest
-
-# ✅ Pin the version – predictable and safe
-- name: Install nginx
-  ansible.builtin.package:
-    name: nginx-1.24.0
-    state: present
-
-# ✅ If you must update, use update_only/only_upgrade to avoid installing new packages
-- name: Update nginx only if already installed
-  ansible.builtin.apt:
-    name: nginx
-    state: latest
-    only_upgrade: true
-```
-
-### Command Execution
-- `ansible.builtin.command` – Run commands without shell processing (preferred, safer)
-- `ansible.builtin.shell` – Run commands with shell features (pipes, redirects, wildcards)
-- `ansible.builtin.script` – Run local script on remote host
-- `ansible.builtin.raw` – Run command without Python (for bootstrapping)
-
-**When to use which:**
-- Simple command → `command` (no shell injection risk)
-- Pipes/redirects → `shell` (always use `set -o pipefail`)
-- Local script → `script` (easier than copying + executing)
-- No Python on target → `raw` (only for initial setup)
-
-**Critical rules:**
-- Always use `cmd:` key (no free-form)
-- Always set `changed_when:` (or `changed_when: false` for read-only)
-- Use `creates:` or `removes:` for idempotency when possible
-- Prefer Ansible modules over shell commands
-
-```yaml
-# command: no shell processing → prefer this
-- ansible.builtin.command:
-    cmd: /usr/bin/mycommand   # always use cmd: key (no-free-form rule)
-  changed_when: false         # when read-only
-
-# shell: only when pipes/redirects are needed
-# risky-shell-pipe: always set pipefail when using pipes!
-- name: Pipeline with pipefail
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      cat /etc/hosts | grep localhost
-    executable: /bin/bash
-  changed_when: false
-
-# shell without pipes: pipefail not required
-- ansible.builtin.shell: |
-    cd /opt && ./configure && make
-  args:
-    creates: /opt/app/bin/myapp   # make idempotent!
-
-# script: run local script remotely
-- ansible.builtin.script: /local/path/to/script.sh
-  args:
-    creates: /tmp/script.done
-```
-
-## Async Tasks (for long-running operations)
-```yaml
-- name: Long running operation
-  ansible.builtin.command: /usr/bin/long_process
-  async: 3600
-  poll: 0
-  register: long_task
-
-- name: Check on long task
-  ansible.builtin.async_status:
-    jid: "{{ long_task.ansible_job_id }}"
-  register: job_result
-  until: job_result.finished
-  retries: 30
-  delay: 10
-```
-
-## Privilege Escalation
-```yaml
-# For the entire play
-- name: System configuration
-  hosts: all
-  become: true
-  become_method: sudo
-
-# Only for individual tasks
-- name: Runs as root
-  ansible.builtin.package:
-    name: nginx
-    state: present
-  become: true
-
-# partial-become: become_user ALWAYS requires become: true at the SAME level
-# ✅ Correct – both defined at task level
-- name: Start service as app user
-  ansible.builtin.service:
-    name: myapp
-    state: started
-  become: true
-  become_user: appuser
-
-# ❌ Wrong – become_user without any become: true
-- name: Bad example play
-  hosts: all
-  tasks:
-    - name: Start service as app user
-      ansible.builtin.service:
-        name: myapp
-        state: started
-      become_user: appuser  # <- partial-become violation! become: true is missing at the same level
-```
-
-## Inventory – Static YAML (recommended)
-```yaml
-# inventory/production/hosts.yml
----
-all:
-  children:
-    webservers:
-      hosts:
-        web1.example.com:   # FQDN – no ansible_host needed
-        web2.example.com:
-      vars:
-        nginx_port: 80
-    databases:
-      hosts:
-        db1.example.com:
-          postgresql_version: 14
-```
-
-## Variable Placement
-
-| File | Precedence | Use for |
-|---|---|---|
-| `defaults/main.yml` | Low | Public variables – easy to override from outside the role |
-| `vars/main.yml` | High | Internal role variables – not meant to be overridden |
-
-Never define role variables at play level or inline in tasks.
-
-## Template Extension
-
-Always use the `.j2` extension for Jinja2 template files stored in the `templates/` folder:
-```
-templates/
-├── nginx.conf.j2
-└── app.conf.j2
-```
-
-## when Conditions
-
-`when:` must only use Ansible facts or registered variables — never inline shell commands:
-```yaml
-# ✅ Correct – uses ansible fact
-- name: Install on Debian only
-  ansible.builtin.package:
-    name: nginx
-    state: present
-  when: ansible_os_family == "Debian"
-
-# ✅ Correct – uses registered variable
-- name: Restart only if config changed
-  ansible.builtin.service:
-    name: nginx
-    state: restarted
-  when: config_result.changed
-
-# ❌ Wrong – shell command inline in when
-- name: Check if file exists
-  ansible.builtin.debug:
-    msg: "exists"
-  when: "{{ lookup('pipe', 'test -f /etc/nginx/nginx.conf') }}"
-```
-
-## Tag Strategy
-
-Every play and every task must have at least one tag for targeted execution:
-```yaml
-tasks:
-  - name: Install packages
-    ansible.builtin.package:
-      name: nginx
-      state: present
-    tags:
-      - packages
-      - nginx
-
-  - name: Run tests
-    ansible.builtin.command: /usr/local/bin/test_nginx.sh
-    tags:
-      - never      # NEVER runs automatically
-      - testing    # only with --tags testing
-```
-
-## Common Issues & Solutions
-
-| Problem | Solution |
-|---|---|
-| SSH Connection Refused | Set `ansible_user`, `ansible_ssh_private_key_file` |
-| Permission Denied | Add `become: true` |
-| Module Not Found | `ansible-galaxy collection install community.general` |
-| Unreachable Host | Test with `ansible all -m ping -i inventory/hosts.yml` |
-
-## Validation Workflow
-```bash
-ansible-playbook playbook.yml --syntax-check   # Syntax
-ansible-lint playbook.yml                      # Lint
-ansible-playbook playbook.yml --check --diff   # Dry-Run
-ansible-playbook playbook.yml                  # Execute
-```
-
-## ansible-lint Key Rules Reference
+## ansible-lint rules — quick reference
 
 | Rule | Profile | What it checks |
 |---|---|---|
-| `name[missing]` | basic | Every task must have a `name:` |
-| `name[casing]` | moderate | Task names must start with uppercase |
-| `no-changed-when` | shared | `command`/`shell` tasks must have `changed_when:` |
-| `no-free-form` | basic | No inline args on `command`/`shell` — use `cmd:` key |
-| `fqcn[action]` | production | Always use FQCN for modules (`ansible.builtin.*`) |
-| `var-naming[no-role-prefix]` | basic | Role variables must be prefixed with the role name |
-| `yaml[truthy]` | basic | Use `true`/`false` — never `yes`/`no`/`True`/`False` |
-| `key-order` | basic | `name` must be first key; `block`/`rescue`/`always` must be last keys |
-| `no-handler` | shared | `when: result.changed` → use `notify` + handler instead |
-| `partial-become` | basic | `become_user` requires `become: true` at the **same** level |
-| `package-latest` | safety | Never `state: latest` in production — pin versions |
-| `risky-shell-pipe` | safety | Always `set -o pipefail` when using pipes in `shell:` |
-| `risky-file-permissions` | safety | Always set `mode:` explicitly on file-creating modules |
-| `avoid-implicit` | safety | No implicit type coercion — use explicit Jinja2 filters |
-| `ignore-errors` | shared | Never `ignore_errors: true` without a comment explaining why |
-| `no-log-password` | opt-in | Set `no_log: true` when looping over sensitive data |
-| `loop-var-prefix` | opt-in | Loop vars in roles must use a prefix (e.g. `__rolename_item`) |
-| `import-task-no-when` | production | `when:` on `import_tasks` is evaluated only once — use `include_tasks` |
-| `single-entry-point` | production | Roles must have a single `tasks/main.yml` entry point |
+| `name[missing]` | basic | every task must have `name:` |
+| `name[casing]` | moderate | task names must start uppercase |
+| `no-changed-when` | shared | `command`/`shell` must set `changed_when:` |
+| `no-free-form` | basic | no inline args on `command`/`shell` — use `cmd:` |
+| `fqcn[action]` | production | always use FQCN |
+| `var-naming[no-role-prefix]` | basic | role vars must start with role name |
+| `yaml[truthy]` | basic | `true`/`false` only |
+| `key-order` | basic | `name` first; `block`/`rescue`/`always` last |
+| `no-handler` | shared | use `notify`+handler instead of `when: result.changed` |
+| `partial-become` | basic | `become_user` needs `become: true` at same level |
+| `package-latest` | safety | never `state: latest` |
+| `risky-shell-pipe` | safety | `set -o pipefail` when piping in `shell` |
+| `risky-file-permissions` | safety | always set `mode:` explicitly |
+| `avoid-implicit` | safety | no implicit type coercion |
+| `ignore-errors` | shared | never `ignore_errors: true` without comment |
+| `no-log-password` | opt-in | `no_log: true` when looping over secrets |
+| `loop-var-prefix` | opt-in | role loop vars must use prefix |
+| `import-task-no-when` | production | `when:` on `import_tasks` evaluates once — use `include_tasks` |
+| `single-entry-point` | production | role must have single `tasks/main.yml` |
 
-## .ansible-lint Configuration
+## Validation workflow
 
-Always include a `.ansible-lint` file in the project root:
+The MCP tools enforce this in order:
 
-```yaml
-# .ansible-lint
-profile: production   # min, basic, moderate, safety, shared, production
+1. `syntax_check` — fast structural check
+2. `lint_file` — production-profile rules (see above)
+3. `diff_check` — dry-run with `--check --diff`
 
-offline: true         # don't fetch schemas on every run
-
-# Opt-in rules (not enabled by default)
-enable_list:
-  - no-log-password   # warn when secrets are looped without no_log
-  - args              # validate module arguments
-
-# Loop variable prefix pattern for roles (avoids collisions)
-loop_var_prefix: "^(__|{role}_)"
-
-# Variable naming: lowercase + underscores only
-var_naming_pattern: "^[a-z_][a-z0-9_]*$"
-
-# Suppress specific rules per file (prefer this over skip_list)
-# .ansible-lint-ignore is the better alternative – see below
-skip_list: []
-
-warn_list:
-  - experimental
-```
-
-Use `.ansible-lint-ignore` for per-file suppressions instead of `skip_list`:
-```
-# .ansible-lint-ignore
-playbooks/legacy.yml package-latest  # pinning not possible for this legacy role
-```
-
----
-**Remember:** Ansible is about declarative infrastructure — describe the **desired state**, not the steps to get there. Focus on **idempotency**, **clarity**, and **maintainability**.
-
-Docs: https://docs.ansible.com | Galaxy: https://galaxy.ansible.com
+Docs: <https://docs.ansible.com/projects/lint/rules/>

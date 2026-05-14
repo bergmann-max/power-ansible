@@ -39,31 +39,47 @@ No configuration required. Optional: Set `ANSIBLE_INVENTORY` environment variabl
 
 ## Available MCP Tools
 
-| Tool | Purpose | Auto-approved |
-|------|---------|---------------|
-| `lint_file` | Run ansible-lint on file or role directory | ✅ |
-| `syntax_check` | Validate playbook syntax without execution | ✅ |
-| `diff_check` | Preview changes with --check --diff mode | ❌ |
-| `gather_facts` | Collect all facts from a host | ❌ |
-| `list_hosts` | Show hosts affected by playbook | ✅ |
-| `list_tags` | List all tags in playbook | ✅ |
+| Tool | Purpose | Structured key | Auto-approved |
+|------|---------|----------------|---------------|
+| `lint_file` | Run ansible-lint on file or role directory | `findings[]` | ✅ |
+| `syntax_check` | Validate playbook syntax without execution | `errors[]` | ✅ |
+| `diff_check` | Preview changes with --check --diff mode | `recap{host}` | ❌ |
+| `gather_facts` | Collect all facts from a host | `facts{}` | ❌ |
+| `list_hosts` | Show hosts affected by playbook | `hosts[]` | ✅ |
+| `list_tags` | List all tags in playbook | `tags[]` | ✅ |
 
-All tools require `project_root` parameter (absolute path to Ansible workspace).
+**Return shape:** Every tool returns `{ok, stdout, stderr, <structured key>}`.
+The structured key holds parsed output for LLM consumption — raw `stdout`/`stderr`
+remain for debugging and when parsing fails.
+
+**Workspace resolution:** Tools auto-resolve the workspace via the MCP `roots`
+capability when the client advertises it. If `roots` is unavailable, pass
+`project_root` as an absolute path on each call.
+
+---
+
+## When to Load Steering Files
+- Ansible code style, idempotency, YAML, naming → `ansible-best-practices.md`
+- Creating new role → `ansible-role-structure.md`
+- Creating or running playbooks → `ansible-playbook-workflow.md`
+- Setting up inventory, group_vars, host_vars → `ansible-inventory.md`
+- Writing or tuning `ansible.cfg` (defaults, ssh, become, callbacks) → `ansible-config.md`
+- Managing secrets or encrypted vars → `ansible-vault.md`
+- Installing or using Galaxy collections → `ansible-collections.md`
 
 ---
 
 ## Available Steering Files
 
-Comprehensive guides for Ansible workflows and best practices:
+Guides for Ansible workflows and best practices:
 
 - **ansible-best-practices.md** - Core patterns, idempotency, YAML style, naming conventions
 - **ansible-role-structure.md** - Role directory layout, task organization, handlers, defaults
 - **ansible-playbook-workflow.md** - Playbook creation, execution patterns, play structure
 - **ansible-inventory.md** - Inventory structure, group_vars, host_vars, dynamic inventory
+- **ansible-config.md** - `ansible.cfg` defaults, SSH, privilege escalation, callbacks, plugins
 - **ansible-vault.md** - Secrets management with Ansible Vault, encryption patterns
 - **ansible-collections.md** - Galaxy collections, requirements.yml, namespace management
-
-Read specific guides with: `action="readSteering", steeringFile="<name>.md"`
 
 ---
 
@@ -137,9 +153,14 @@ Read specific guides with: `action="readSteering", steeringFile="<name>.md"`
    - Verify `group_vars/` and `host_vars/` for variable conflicts
    - Check fact names match what tasks expect
 
-### Creating ansible.cfg / inventory
-1. Write the files directly using your file tools
-2. Follow the structure in the steering file `ansible-inventory.md`
+### Creating ansible.cfg
+1. Write `ansible.cfg` at the project root using your file tools
+2. Follow the structure and section reference in `ansible-config.md`
+3. Audit applied values with `ansible-config dump --only-changed`
+
+### Creating Inventory
+1. Write `inventory/hosts.yml` (or `hosts.ini`) using your file tools
+2. Follow the structure in `ansible-inventory.md` (groups, group_vars, host_vars)
 3. Verify inventory with `list_hosts` on any playbook
 
 ---
@@ -193,17 +214,22 @@ Solution: Install git and ensure it is on `PATH`.
 
 ---
 
-### Tool Call Returns "project_root not found"
+### Tool Call Returns "Workspace not resolved"
 
 **Symptom:**
 ```
-Error: project_root '/path/to/project' does not exist
+Error: Workspace not resolved. Either the client must advertise the MCP
+'roots' capability, or pass project_root as an absolute path.
 ```
 
-All tools require `project_root` to be an **absolute path** to an existing Ansible workspace directory.
+The MCP client did not expose a workspace via `roots`, and no `project_root`
+argument was passed. Resolution:
 
-- Use the absolute path, not a relative one
-- Ensure the directory exists before calling any tool
+- If your client supports MCP roots, ensure exactly one workspace folder is
+  open and re-run.
+- Otherwise pass `project_root` as an **absolute path** to an existing Ansible
+  workspace directory (relative paths and unresolved `${workspaceFolder}`
+  placeholders are rejected).
 
 ---
 
