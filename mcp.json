@@ -4,8 +4,8 @@
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/bergmann-max/power-ansible@0.3.0",
-        "ansible-mcp"
+        "git+https://github.com/bergmann-max/mcp-ansible.git@0.1.0",
+        "mcp-ansible"
       ],
       "autoApprove": [
         "lint_file",
