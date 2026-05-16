@@ -2,7 +2,6 @@
 
 [![Version](https://img.shields.io/github/v/tag/bergmann-max/power-ansible?label=version&color=blue&sort=semver)](https://github.com/bergmann-max/power-ansible/tags)
 [![Kiro Power](https://img.shields.io/badge/kiro-power-9046FF)](https://kiro.dev/docs/powers/)
-[![FastMCP](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/bergmann-max/power-ansible/main/pyproject.toml&query=%24.project.dependencies%5B0%5D&label=fastmcp&color=5468FF&logo=python&logoColor=white)](https://github.com/jlowin/fastmcp)
 [![License](https://img.shields.io/badge/license-MIT-blue?)](https://github.com/bergmann-max/power-ansible/blob/main/LICENSE)
 
 A [Kiro Power](https://kiro.dev/docs/powers/) that provides an MCP server and steering files to build, lint, and validate Ansible playbooks and roles.
