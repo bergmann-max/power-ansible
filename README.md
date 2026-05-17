@@ -1,7 +1,7 @@
 # Kiro Power: Ansible
 
-[![Version](https://img.shields.io/github/v/tag/bergmann-max/power-ansible?label=version&color=blue&sort=semver)](https://github.com/bergmann-max/power-ansible/tags)
 [![Kiro Power](https://img.shields.io/badge/kiro-power-9046FF)](https://kiro.dev/docs/powers/)
+[![Version](https://img.shields.io/github/v/tag/bergmann-max/power-ansible?label=version&color=blue&sort=semver)](https://github.com/bergmann-max/power-ansible/tags)
 [![License](https://img.shields.io/badge/license-MIT-blue?)](https://github.com/bergmann-max/power-ansible/blob/main/LICENSE)
 
 A [Kiro Power](https://kiro.dev/docs/powers/) that provides an MCP server and steering files to build, lint, and validate Ansible playbooks and roles.
@@ -20,6 +20,7 @@ A [Kiro Power](https://kiro.dev/docs/powers/) that provides an MCP server and st
 - `ansible-best-practices.md` — core patterns, idempotency, YAML style, naming
 - `ansible-role-structure.md` — role layout, task organization, handlers, defaults
 - `ansible-playbook-workflow.md` — playbook creation, execution, play structure
+- `ansible-jinja.md` — Jinja2 filters, tests, lookups, whitespace control
 - `ansible-inventory.md` — inventory structure, group_vars, host_vars, dynamic inventory
 - `ansible-config.md` — `ansible.cfg` defaults, SSH, privilege escalation, callbacks, plugins
 - `ansible-vault.md` — secrets management, encryption patterns

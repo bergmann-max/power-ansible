@@ -1,12 +1,11 @@
 # Ansible Vault – Project Conventions
 
-For full vault CLI reference see
+Full vault CLI ref:
 <https://docs.ansible.com/ansible/latest/vault_guide/index.html>.
 
 ## When to use vault
 
-Use vault for **static secrets** committed to the repo: DB passwords, API
-tokens, SSH/TLS private keys.
+Vault for **static secrets** in repo: DB passwords, API tokens, SSH/TLS private keys.
 
 Do **not** use vault for:
 - Non-sensitive config (ports, paths, package names).
@@ -15,7 +14,7 @@ Do **not** use vault for:
 
 ## Layout — separate `vars.yml` + `vault.yml`
 
-This is the only layout used in this project. No inline `!vault` blobs.
+Only layout used here. No inline `!vault` blobs.
 
 ```
 group_vars/
@@ -24,9 +23,7 @@ group_vars/
     └── vault.yml      # encrypted
 ```
 
-`vars.yml` references vault variables by `vault_*` prefix; `vault.yml` defines
-them. Diffs stay readable; the encrypted file changes only when a secret
-changes.
+`vars.yml` references vault vars by `vault_*` prefix; `vault.yml` defines them. Diffs stay readable; encrypted file changes only when secret changes.
 
 ```yaml
 # vars.yml
@@ -60,15 +57,13 @@ echo -n 'supersecret123' | ansible-vault encrypt_string --stdin-name 'vault_api_
 
 ## Password sources
 
-In order of preference:
+Preference order:
 
-1. `vault_password_file = ~/.vault_pass` in `ansible.cfg` (developer machine,
-   `chmod 600`).
-2. `--vault-password-file <path>` in CI, written from a CI secret to a temp
-   file, removed after run.
-3. `--ask-vault-pass` only for ad-hoc / one-off invocations.
+1. `vault_password_file = ~/.vault_pass` in `ansible.cfg` (dev machine, `chmod 600`).
+2. `--vault-password-file <path>` in CI, written from CI secret to temp file, removed after run.
+3. `--ask-vault-pass` only for ad-hoc/one-off.
 
-Script-based password (e.g. fetched from an env var):
+Script-based password (fetched from env var):
 
 ```bash
 #!/bin/bash
@@ -131,7 +126,7 @@ withCredentials([string(credentialsId: 'ansible-vault-password', variable: 'VAUL
 
 ## External secret managers (alternative to vault)
 
-For dynamic / rotating secrets, use lookups instead of encrypted files.
+Dynamic/rotating secrets: use lookups, not encrypted files.
 
 ### HashiCorp Vault — requires `hvac`
 
@@ -167,7 +162,7 @@ For dynamic / rotating secrets, use lookups instead of encrypted files.
    **/vault_pass*
    **/.vault_pass*
    ```
-2. Tasks consuming a secret get `no_log: true`:
+2. Tasks consuming secret get `no_log: true`:
    ```yaml
    - name: Create database user
      community.postgresql.postgresql_user:
@@ -176,7 +171,7 @@ For dynamic / rotating secrets, use lookups instead of encrypted files.
      no_log: true
    ```
 3. Rotate vault password on personnel changes: `ansible-vault rekey <file>`.
-4. After editing a vault file, sanity-check:
+4. After editing vault file, sanity-check:
    ```bash
    ansible-vault view group_vars/all/vault.yml
    ansible-playbook playbook.yml --syntax-check --ask-vault-pass
@@ -184,9 +179,6 @@ For dynamic / rotating secrets, use lookups instead of encrypted files.
 
 ## Common errors
 
-- **"Decryption failed"** → wrong password, or missing `--vault-id` when
-  multiple IDs are in use.
-- **"unhexlify error"** → file edited outside `ansible-vault edit` while
-  encrypted; restore from backup.
-- **"no vault secrets found"** → no password source configured (cfg / flag /
-  prompt).
+- **"Decryption failed"** → wrong password, or missing `--vault-id` when multiple IDs in use.
+- **"unhexlify error"** → file edited outside `ansible-vault edit` while encrypted; restore from backup.
+- **"no vault secrets found"** → no password source configured (cfg / flag / prompt).

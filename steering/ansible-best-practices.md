@@ -1,30 +1,27 @@
 # Ansible Best Practices – Project Conventions
 
-Project-specific rules and the `ansible-lint` violations the `lint_file` tool
-will surface. For general Ansible concepts see:
+Project rules + `ansible-lint` violations `lint_file` tool surface. General Ansible concepts:
 <https://docs.ansible.com/ansible/latest/>.
 
 ## Hard rules in this project
 
-1. **FQCN only** — every module call uses `ansible.builtin.<name>` (or
-   `<collection>.<name>` for non-builtin). Lint: `fqcn[action]`.
-2. **Mode is ugo, never octal** — `mode: 'u=rw,g=r,o=r'`, not `'0644'`. The
-   `o=` part is mandatory even when other has no permissions
-   (`mode: 'u=rw,g=r,o='`).
-3. **Pin versions** — `state: present` with a pinned version, never
+1. **FQCN only** — every module call use `ansible.builtin.<name>` (or
+   `<collection>.<name>` non-builtin). Lint: `fqcn[action]`.
+2. **Mode is ugo, never octal** — `mode: 'u=rw,g=r,o=r'`, not `'0644'`. `o=`
+   mandatory even when other no perms (`mode: 'u=rw,g=r,o='`).
+3. **Pin versions** — `state: present` + pinned version, never
    `state: latest`. Lint: `package-latest`.
-4. **Every task has a name** — uppercase first character. Lint:
+4. **Every task has a name** — uppercase first char. Lint:
    `name[missing]`, `name[casing]`.
 5. **`command`/`shell` must use `cmd:` key** — no free-form args. Lint:
-   `no-free-form`. Always set `changed_when:` (use `false` for read-only).
+   `no-free-form`. Always set `changed_when:` (`false` for read-only).
    Lint: `no-changed-when`.
 6. **No implicit type coercion** — use Jinja filters (e.g. `to_json`) when
    passing dicts/lists. Lint: `avoid-implicit`.
-7. **Tags everywhere** — every task gets at least one tag for `--tags`
-   filtering.
+7. **Tags everywhere** — every task gets one+ tag for `--tags` filter.
 8. **Truthy literals** — `true`/`false` only, never `yes/no/True/False`.
    Lint: `yaml[truthy]`.
-9. **Role variable naming** — role vars must be prefixed with the role name.
+9. **Role variable naming** — role vars prefixed with role name.
    Lint: `var-naming[no-role-prefix]`.
 
 ## Play skeleton
@@ -67,30 +64,33 @@ will surface. For general Ansible concepts see:
 
 ## Idempotency — the critical rule
 
-Every task must produce the same outcome on the 2nd run as the 1st. Use
-module state semantics (`state: present/absent`) or `creates:`/`removes:` on
+Every task must produce same outcome 2nd run as 1st. Use module state
+semantics (`state: present/absent`) or `creates:`/`removes:` on
 `command`/`shell`.
 
 ```yaml
-# ✅ Idempotent — package module
+# GOOD Idempotent — package module
 - ansible.builtin.package: { name: nginx, state: present }
 
-# ✅ Idempotent — creates: marker
+# GOOD Idempotent — creates: marker
 - ansible.builtin.command:
     cmd: wget https://example.com/app.tar.gz -O /opt/app.tar.gz
     creates: /opt/app.tar.gz
 
-# ❌ Not idempotent — re-downloads every run
+# BAD Not idempotent — re-downloads every run
 - ansible.builtin.command:
     cmd: wget https://example.com/app.tar.gz
 
-# ❌ Not idempotent — keeps appending
+# BAD Not idempotent — keeps appending
 - ansible.builtin.shell: echo "config=value" >> /etc/app.conf
 ```
 
-## Variable precedence (lowest → highest)
+## Variable precedence — condensed (lowest → highest)
 
-Top of the list is weakest, bottom always wins.
+Condensed view of 14 most-used sources. Full Ansible spec lists ~22 levels
+(command-line role params, connection vars, etc.) — see
+<https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence>.
+Top weakest, bottom always wins.
 
 1. role defaults (`roles/*/defaults/main.yml`)
 2. inventory file/script group vars
@@ -140,13 +140,13 @@ Top of the list is weakest, bottom always wins.
 ### `no-handler` — use `notify`, not `when: result.changed`
 
 ```yaml
-# ❌
+# BAD
 - ansible.builtin.copy: { src: nginx.conf, dest: /etc/nginx/nginx.conf, mode: 'u=rw,g=r,o=r' }
   register: result
 - ansible.builtin.service: { name: nginx, state: restarted }
   when: result.changed
 
-# ✅
+# GOOD
 - ansible.builtin.copy: { src: nginx.conf, dest: /etc/nginx/nginx.conf, mode: 'u=rw,g=r,o=r' }
   notify: Restart nginx
 ```
@@ -154,7 +154,7 @@ Top of the list is weakest, bottom always wins.
 ### `partial-become` — `become_user` requires `become: true` at the same level
 
 ```yaml
-# ✅
+# GOOD
 - ansible.builtin.service: { name: myapp, state: started }
   become: true
   become_user: appuser
@@ -184,12 +184,12 @@ Top of the list is weakest, bottom always wins.
 ### `avoid-implicit` — explicit Jinja for non-string values
 
 ```yaml
-# ❌
+# BAD
 - ansible.builtin.copy:
     content: { "key": "value" }
     dest: /tmp/config.json
 
-# ✅
+# GOOD
 - vars: { config: { "key": "value" } }
   ansible.builtin.copy:
     content: "{{ config | to_json }}"
@@ -198,20 +198,20 @@ Top of the list is weakest, bottom always wins.
 
 ### `import-task-no-when` — `when:` on `import_tasks` is evaluated once
 
-Use `include_tasks` when the condition depends on runtime state.
+Use `include_tasks` when condition depends on runtime state.
 
 ### `when:` may only reference facts / registered vars
 
 ```yaml
-# ✅
+# GOOD
 - ansible.builtin.package: { name: nginx, state: present }
   when: ansible_os_family == "Debian"
 
-# ✅
+# GOOD
 - ansible.builtin.service: { name: nginx, state: restarted }
   when: config_result.changed
 
-# ❌ shell-command-in-when — fragile and not declarative
+# BAD shell-command-in-when — fragile and not declarative
 - ansible.builtin.debug: { msg: "exists" }
   when: "{{ lookup('pipe', 'test -f /etc/nginx/nginx.conf') }}"
 ```
@@ -234,7 +234,7 @@ output stays readable.
     label: "{{ item.name }}"
 ```
 
-In roles, prefix the loop variable to avoid collisions with outer loops
+In roles, prefix loop variable to avoid collisions with outer loops
 (see `ansible-role-structure.md`).
 
 ## Module choice cheatsheet
@@ -345,17 +345,26 @@ Never plain text in repo. Use one of:
 
 ## `.ansible-lint` baseline
 
+Tested against `ansible-lint 26.x` / `ansible-core 2.20.x`.
+
 ```yaml
 profile: production
 offline: true
 enable_list:
-  - no-log-password
-  - args
-loop_var_prefix: "^(__|{role}_)"
+  - no-log-password           # opt-in: requires no_log on secret loops
+  - loop-var-prefix           # opt-in: enforces loop_var_prefix below
+loop_var_prefix: "^(__|{role}_)"   # {role} is substituted at runtime by ansible-lint
 var_naming_pattern: "^[a-z_][a-z0-9_]*$"
 ```
 
-Per-file suppressions go in `.ansible-lint-ignore`, not `skip_list`.
+Notes:
+
+- `args` already on in `production` profile — do not list in `enable_list`.
+  Violations surface sub-error labels: `args[module]` (module argspec
+  mismatch), `args[python]` (Python module load error).
+- Per-file suppressions go in `.ansible-lint-ignore`, not `skip_list`.
+- Power repo does **not** ship `.ansible-lint`. Copy baseline block
+  above into consuming project's root on first onboarding.
 
 ## ansible-lint rules — quick reference
 
@@ -383,7 +392,7 @@ Per-file suppressions go in `.ansible-lint-ignore`, not `skip_list`.
 
 ## Validation workflow
 
-The MCP tools enforce this in order:
+MCP tools enforce in order:
 
 1. `syntax_check` — fast structural check
 2. `lint_file` — production-profile rules (see above)

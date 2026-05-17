@@ -1,7 +1,7 @@
 # Ansible Role Structure – Project Conventions
 
-For lint rules and general module guidance see `ansible-best-practices.md`.
-For the full role layout spec see
+Lint rules + general module guidance: see `ansible-best-practices.md`.
+Full role layout spec:
 <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html>.
 
 ## Required directory layout
@@ -51,16 +51,16 @@ roles/<role_name>/
 | Use for | unconditional static includes | conditional / OS-specific loading |
 
 ```yaml
-# ✅ include_tasks for conditional / per-host dynamic loading
+# GOOD include_tasks for conditional / per-host dynamic loading
 - name: Include OS-specific tasks
   ansible.builtin.include_tasks: "{{ ansible_os_family | lower }}.yml"
   when: ansible_os_family is defined
 
-# ✅ import_tasks for unconditional static includes — tags work correctly
+# GOOD import_tasks for unconditional static includes — tags work correctly
 - name: Import hardening tasks
   ansible.builtin.import_tasks: hardening.yml
 
-# ❌ import-task-no-when — when: applies only at parse time
+# BAD import-task-no-when — when: applies only at parse time
 - name: Import tasks conditionally
   ansible.builtin.import_tasks: optional.yml
   when: some_condition   # <- use include_tasks instead
@@ -85,8 +85,7 @@ roles/<role_name>/
 
 ## Variable naming — role prefix is mandatory
 
-ansible-lint `var-naming[no-role-prefix]` requires every role variable to start
-with the role name. No generic names (`port`, `enabled`, `package`).
+ansible-lint `var-naming[no-role-prefix]` requires every role variable start with role name. No generic names (`port`, `enabled`, `package`).
 
 ```yaml
 # Role: install_nginx
@@ -97,8 +96,7 @@ install_nginx_vhosts: []
 
 ## Loop variables — prefix `__` or `<role>_`
 
-`item` collides in nested loops. Set `loop_control.loop_var` to a prefixed
-name. `.ansible-lint` pattern: `loop_var_prefix: "^(__|{role}_)"`.
+`item` collides in nested loops. Set `loop_control.loop_var` to prefixed name. `.ansible-lint` pattern: `loop_var_prefix: "^(__|{role}_)"`.
 
 ```yaml
 - name: Create vhosts
@@ -114,8 +112,7 @@ name. `.ansible-lint` pattern: `loop_var_prefix: "^(__|{role}_)"`.
 
 ## `defaults/main.yml` — comment every variable
 
-Every variable: short comment, role prefix, sensible default. List-typed vars
-get a commented example below the empty default so the shape is visible.
+Every var: short comment, role prefix, sensible default. List-typed vars get commented example below empty default — shape visible.
 
 ```yaml
 ---
@@ -153,7 +150,7 @@ Double-underscore prefix signals "internal".
 
 ## Jinja2 template header
 
-Every `.j2` file starts with:
+Every `.j2` starts with:
 
 ```
 {# Managed by Ansible – role: {{ role_name }} #}
@@ -162,7 +159,7 @@ Every `.j2` file starts with:
 
 ## Handlers
 
-Use `listen:` so multiple notifiers can trigger the same handler.
+Use `listen:` — multiple notifiers trigger same handler.
 
 ```yaml
 # handlers/main.yml

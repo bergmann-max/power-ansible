@@ -1,22 +1,21 @@
 # Ansible Inventory – Project Conventions
 
-For inventory plugin reference and dynamic-inventory full docs see
+Inventory plugin reference + dynamic-inventory docs:
 <https://docs.ansible.com/ansible/latest/inventory_guide/>.
 
 ## Format
 
 - `hosts.ini` for small projects / quick scaffolds.
-- `hosts.yml` for nested groups and larger projects.
+- `hosts.yml` for nested groups + larger projects.
 
-The MCP tools resolve inventory in this order (see `POWER.md`):
+MCP tools resolve inventory this order (see `POWER.md`):
 1. `ANSIBLE_INVENTORY` env var
 2. `ansible.cfg` `[defaults] inventory =`
 3. Fallback paths: `hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.*`
 
 ## YAML inventory with environments
 
-Use `children:` to compose environment groups out of functional groups. This
-is the recommended layout for any project that has more than one environment.
+Use `children:` compose environment groups from functional groups. Recommended layout for any project with >1 environment.
 
 ```yaml
 # inventory/hosts.yml
@@ -47,9 +46,7 @@ all:
 
 ## `ansible_host` rule
 
-Only set `ansible_host` when the inventory name is **not** the real DNS name —
-i.e. an alias, an IP-only host, or a name that differs from the connection
-target. Otherwise omit it; the FQDN inventory key is the connection target.
+Set `ansible_host` only when inventory name **not** real DNS name — alias, IP-only host, or name differs from connection target. Else omit; FQDN inventory key = connection target.
 
 ```yaml
 all:
@@ -65,7 +62,7 @@ all:
 - Lowercase, underscores: `web_servers`, not `WebServers`.
 - Functional groups: `webservers`, `dbservers`, `loadbalancers`.
 - Environment groups: `production`, `staging`, `development`.
-- Combined groups via `children:`, not by flattening names where possible.
+- Combine via `children:`, not flattened names.
 
 ## Vars layout
 
@@ -84,13 +81,11 @@ inventory/
         └── vault.yml
 ```
 
-Use the directory form (`group_vars/<group>/vars.yml` + `vault.yml`) whenever
-the group has any vault-encrypted variables.
+Use directory form (`group_vars/<group>/vars.yml` + `vault.yml`) whenever group has vault-encrypted vars.
 
 ## Multi-inventory (static + dynamic)
 
-Point `inventory =` at a directory; Ansible merges every file inside. Or list
-files explicitly with `:` separators.
+Point `inventory =` at directory; Ansible merges every file inside. Or list files explicitly with `:` separators.
 
 ```ini
 # ansible.cfg
@@ -117,7 +112,7 @@ compose:
   ansible_host: public_ip_address
 ```
 
-Enable the plugin in `ansible.cfg`:
+Enable plugin in `ansible.cfg`:
 ```ini
 [defaults]
 inventory = inventory/
