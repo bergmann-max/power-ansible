@@ -85,27 +85,10 @@ semantics (`state: present/absent`) or `creates:`/`removes:` on
 - ansible.builtin.shell: echo "config=value" >> /etc/app.conf
 ```
 
-## Variable precedence — condensed (lowest → highest)
+## Variable precedence
 
-Condensed view of 14 most-used sources. Full Ansible spec lists ~22 levels
-(command-line role params, connection vars, etc.) — see
-<https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence>.
-Top weakest, bottom always wins.
-
-1. role defaults (`roles/*/defaults/main.yml`)
-2. inventory file/script group vars
-3. inventory `group_vars/all`
-4. playbook `group_vars/all`
-5. inventory `group_vars/*`
-6. playbook `group_vars/*`
-7. inventory `host_vars/*`
-8. playbook `host_vars/*`
-9. host facts / cached `set_facts`
-10. play vars / `vars_prompt` / `vars_files`
-11. role vars (`roles/*/vars/main.yml`)
-12. block vars / task vars
-13. `include_vars` / `set_facts` / registered vars
-14. extra vars (`-e`) — always win
+Lowest → highest: role defaults < group_vars < host_vars < play vars < role vars < extra vars (`-e`).
+Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence>.
 
 ## Error handling
 
@@ -237,21 +220,11 @@ output stays readable.
 In roles, prefix loop variable to avoid collisions with outer loops
 (see `ansible-role-structure.md`).
 
-## Module choice cheatsheet
+## Module choice
 
-| Need | Use | Notes |
-|---|---|---|
-| Static file | `ansible.builtin.copy` | `backup: true` for safety |
-| Dynamic content | `ansible.builtin.template` | `validate:` for config files |
-| Single line edit | `ansible.builtin.lineinfile` | |
-| Multi-line block | `ansible.builtin.blockinfile` | set `marker:` |
-| Cross-platform pkg | `ansible.builtin.package` | |
-| Cross-platform svc | `ansible.builtin.service` | |
-| Systemd-only | `ansible.builtin.systemd` | `daemon_reload: true` after unit changes |
-| Simple command | `ansible.builtin.command` | always `cmd:` + `changed_when:` |
-| Pipes/redirects | `ansible.builtin.shell` | `set -o pipefail` |
-| Run local script remotely | `ansible.builtin.script` | use `creates:` |
-| No Python on target | `ansible.builtin.raw` | only for bootstrap |
+Prefer `ansible.builtin.*` (copy, template, package, service, command, shell, systemd).
+`command`/`shell` only when no dedicated module exists — always `cmd:` + `changed_when:`.
+Verify available modules: `ansible-doc -l`.
 
 ## Tag strategy
 
@@ -276,23 +249,10 @@ tasks:
     tags: [never, testing]   # only on --tags testing
 ```
 
-## Async tasks (long-running operations)
+## Async tasks
 
-```yaml
-- name: Long running operation
-  ansible.builtin.command: { cmd: /usr/bin/long_process }
-  async: 3600
-  poll: 0
-  register: long_task
-
-- name: Wait for completion
-  ansible.builtin.async_status:
-    jid: "{{ long_task.ansible_job_id }}"
-  register: job_result
-  until: job_result.finished
-  retries: 30
-  delay: 10
-```
+Long-running operations: use `async:` with `poll: 0`, then `ansible.builtin.async_status` to await.
+Full pattern: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_async.html>.
 
 ## Privilege escalation
 
@@ -311,29 +271,8 @@ tasks:
 
 ## Performance
 
-```ini
-# ansible.cfg
-[defaults]
-forks = 20
-pipelining = True
-
-[ssh_connection]
-pipelining = True
-ssh_args = -o ControlMaster=auto -o ControlPersist=60s
-```
-
-```yaml
-# Skip facts when not needed
-- hosts: all
-  gather_facts: false
-
-# Or gather only what you need
-- hosts: all
-  gather_facts: true
-  gather_subset:
-    - "!all"
-    - network
-```
+`ansible.cfg`: `forks=20`, `pipelining=True`, `ControlMaster=auto`/`ControlPersist=60s`.
+Set `gather_facts: false` on plays that don't need facts.
 
 ## Secrets
 
@@ -345,50 +284,24 @@ Never plain text in repo. Use one of:
 
 ## `.ansible-lint` baseline
 
-Tested against `ansible-lint 26.x` / `ansible-core 2.20.x`.
-
 ```yaml
 profile: production
 offline: true
-enable_list:
-  - no-log-password           # opt-in: requires no_log on secret loops
-  - loop-var-prefix           # opt-in: enforces loop_var_prefix below
-loop_var_prefix: "^(__|{role}_)"   # {role} is substituted at runtime by ansible-lint
+enable_list: [no-log-password, loop-var-prefix]
+loop_var_prefix: "^(__|{role}_)"
 var_naming_pattern: "^[a-z_][a-z0-9_]*$"
 ```
 
-Notes:
+Per-file suppressions → `.ansible-lint-ignore`, not `skip_list`.
 
-- `args` already on in `production` profile — do not list in `enable_list`.
-  Violations surface sub-error labels: `args[module]` (module argspec
-  mismatch), `args[python]` (Python module load error).
-- Per-file suppressions go in `.ansible-lint-ignore`, not `skip_list`.
-- Power repo does **not** ship `.ansible-lint`. Copy baseline block
-  above into consuming project's root on first onboarding.
+## ansible-lint rules
 
-## ansible-lint rules — quick reference
+Critical violations → use `lint_file` tool. Key rules covered in sections above:
+`name[missing]`, `name[casing]`, `no-changed-when`, `no-free-form`, `fqcn[action]`,
+`var-naming[no-role-prefix]`, `yaml[truthy]`, `no-handler`, `partial-become`,
+`package-latest`, `risky-shell-pipe`, `avoid-implicit`, `import-task-no-when`.
 
-| Rule | Profile | What it checks |
-|---|---|---|
-| `name[missing]` | basic | every task must have `name:` |
-| `name[casing]` | moderate | task names must start uppercase |
-| `no-changed-when` | shared | `command`/`shell` must set `changed_when:` |
-| `no-free-form` | basic | no inline args on `command`/`shell` — use `cmd:` |
-| `fqcn[action]` | production | always use FQCN |
-| `var-naming[no-role-prefix]` | basic | role vars must start with role name |
-| `yaml[truthy]` | basic | `true`/`false` only |
-| `key-order` | basic | `name` first; `block`/`rescue`/`always` last |
-| `no-handler` | shared | use `notify`+handler instead of `when: result.changed` |
-| `partial-become` | basic | `become_user` needs `become: true` at same level |
-| `package-latest` | safety | never `state: latest` |
-| `risky-shell-pipe` | safety | `set -o pipefail` when piping in `shell` |
-| `risky-file-permissions` | safety | always set `mode:` explicitly |
-| `avoid-implicit` | safety | no implicit type coercion |
-| `ignore-errors` | shared | never `ignore_errors: true` without comment |
-| `no-log-password` | opt-in | `no_log: true` when looping over secrets |
-| `loop-var-prefix` | opt-in | role loop vars must use prefix |
-| `import-task-no-when` | production | `when:` on `import_tasks` evaluates once — use `include_tasks` |
-| `single-entry-point` | production | role must have single `tasks/main.yml` |
+Full rule list: <https://docs.ansible.com/projects/lint/rules/>
 
 ## Validation workflow
 

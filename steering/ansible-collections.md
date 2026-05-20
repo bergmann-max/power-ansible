@@ -47,56 +47,19 @@ collections:
 
 LLM agents: do **not** invent module names. Verify with `ansible-doc -l <collection>`.
 
-### `community.general`
-General-purpose modules outside `ansible.builtin`:
-- `community.general.docker_container` — manage containers
-- `community.general.npm` — npm packages
-- `community.general.terraform` — run Terraform
-- `community.general.htpasswd` — htpasswd files
-- `community.general.ini_file` — edit INI files
-- `community.general.archive` — create archives
+### Key collections (verify modules with `ansible-doc -l <collection>`)
 
-### `ansible.posix`
-POSIX-specific ops:
-- `ansible.posix.firewalld` — firewalld zones/rules
-- `ansible.posix.selinux` — SELinux state
-- `ansible.posix.mount` — mount points (`/etc/fstab` + live)
-- `ansible.posix.sysctl` — kernel params
-- `ansible.posix.authorized_key` — SSH authorized_keys
+| Collection | Domain | `pip install` |
+|---|---|---|
+| `community.general` | General-purpose (docker, npm, terraform, ini_file, archive) | – |
+| `ansible.posix` | POSIX (firewalld, selinux, mount, sysctl, authorized_key) | – |
+| `amazon.aws` | AWS (ec2, s3, rds, iam, cloudformation) | `boto3` `botocore` |
+| `community.docker` | Docker (container, image, network, compose_v2) | `docker` |
+| `kubernetes.core` | K8s (k8s, helm, k8s_info) | `kubernetes` |
+| `community.postgresql` | PostgreSQL (db, user, query, privs) | `psycopg2-binary` |
+| `community.mysql` | MySQL (db, user, query) | `PyMySQL` |
 
-### `amazon.aws`
-Needs `pip install boto3 botocore`.
-- `amazon.aws.ec2_instance` — EC2 instances
-- `amazon.aws.s3_bucket` / `s3_object` — S3
-- `amazon.aws.rds_instance` — RDS databases
-- `amazon.aws.iam_role` / `iam_user` — IAM
-- `amazon.aws.cloudformation` — stacks
-
-### `community.docker`
-Needs `pip install docker`.
-- `community.docker.docker_container`
-- `community.docker.docker_image`
-- `community.docker.docker_network`
-- `community.docker.docker_compose_v2`
-
-### `kubernetes.core`
-Needs `pip install kubernetes`.
-- `kubernetes.core.k8s` — apply/delete K8s resources
-- `kubernetes.core.helm` — Helm charts
-- `kubernetes.core.k8s_info` — query resources
-
-### `community.postgresql`
-Needs `pip install psycopg2-binary`.
-- `community.postgresql.postgresql_db`
-- `community.postgresql.postgresql_user`
-- `community.postgresql.postgresql_query`
-- `community.postgresql.postgresql_privs`
-
-### `community.mysql`
-Needs `pip install PyMySQL`.
-- `community.mysql.mysql_db`
-- `community.mysql.mysql_user`
-- `community.mysql.mysql_query`
+Do **not** invent module names. Verify: `ansible-doc -l <collection>`.
 
 ## Usage example
 

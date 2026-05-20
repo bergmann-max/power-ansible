@@ -61,29 +61,17 @@ Tests use `is`; filters use `|`. Mix them = most common Jinja bug.
 - "{{ my_dict | combine(other_dict) }}"
 ```
 
-## Non-obvious / project-mandated filters
+## Key filters with project-specific semantics
 
 Standard filters (`upper`, `trim`, `length`, `sort`, `replace`, `int`, `bool`,
-`basename`, `regex_replace`, `b64encode`, `urlencode`, …): see Ansible builtin
-docs above. Listed here: filters with project-specific semantics or
-gotchas.
+`basename`, `regex_replace`, `b64encode`, `urlencode`, `from_json`, `from_yaml`,
+`to_nice_yaml`/`to_nice_json`): see Ansible builtin docs.
 
 | Filter | Note |
 |---|---|
-| `mandatory('msg')` | fail render if var undefined — preferred over silent default |
-| `password_hash('sha512', 'salt')` | crypt-style hash for `ansible.builtin.user` |
-| `combine(other, recursive=true)` | deep merge dicts; without `recursive`, nested keys overwritten |
-| `combine(other, list_merge='append')` | concat list values instead of replacing |
-| `selectattr('k', 'eq', v)` / `rejectattr` | filter list-of-dicts by attr — see patterns below |
-| `map(attribute='k')` | pluck attr from each dict; always `| list` after (see anti-patterns) |
-| `dict2items` / `items2dict` | dict ↔ `[{key, value}, …]` — needed for looping dicts |
-| `to_nice_yaml(indent=2)` / `to_nice_json(indent=2)` | structured emit — never implicit stringify |
-| `from_json` / `from_yaml` | parse string back to structure |
-
-```yaml
-# Merge: later sources override earlier
-merged_config: "{{ defaults | combine(env_config, user_config, recursive=true) }}"
-```
+| `mandatory('msg')` | Fail render if var undefined — use instead of silent default |
+| `combine(other, recursive=true)` | Deep merge dicts; without `recursive`, nested keys overwritten |
+| `map(attribute='k')` | Pluck attr from each dict; **always** `| list` after — see anti-patterns |
 
 ## Whitespace control
 
@@ -146,37 +134,21 @@ vars:
   with_port: "{{ servers | selectattr('port', 'defined') | list }}"
 ```
 
-## Loop / conditional reminders
+## Lookups
 
-`loop.index` 1-based, `loop.index0` 0-based, `loop.first` / `loop.last` / `loop.length`
-available inside `{% for %}`. Full if/elif/else and ternary (`x if cond else y`)
-behave as standard Jinja — see linked docs.
+Run on controller. Use for external data not in Ansible variables.
 
-## Lookups vs. filters
-
-| | Lookup (`lookup`/`query`) | Filter (`|`) |
+| | Lookup | Filter |
 |---|---|---|
-| Runs on | controller | controller (during render) |
-| Source | external (file, env, vault) | value piped in |
-| Caching | re-evaluated each render | n/a |
+| Source | external (file, env, vault, password) | value piped in |
 | Example | `{{ lookup('env', 'HOME') }}` | `{{ my_path \| basename }}` |
 
 ```yaml
-# Read file from controller
-config: "{{ lookup('file', 'configs/app.conf') }}"
-
-# Env var (returns '' if unset; use default)
 ssh_user: "{{ lookup('env', 'DEPLOY_USER') | default('deploy', true) }}"
-
-# Template a file (Jinja-render before reading)
-rendered: "{{ lookup('template', 'configs/app.conf.j2') }}"
-
-# Generate password (idempotent — file persists)
 db_pw: "{{ lookup('password', '/tmp/db_pw chars=ascii_letters,digits length=24') }}"
-
-# Many results — use query() (alias for lookup with wantlist=true)
-hosts: "{{ query('inventory_hostnames', 'webservers') }}"
 ```
+
+`query()` = alias for `lookup(..., wantlist=true)`. For `lookup('template', ...)` see Ansible docs.
 
 ## Template header (mandatory for all `.j2` files)
 

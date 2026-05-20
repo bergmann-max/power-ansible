@@ -8,7 +8,7 @@ Inventory plugin reference + dynamic-inventory docs:
 - `hosts.ini` for small projects / quick scaffolds.
 - `hosts.yml` for nested groups + larger projects.
 
-MCP tools resolve inventory this order (see `POWER.md`):
+MCP tools resolve inventory in this order:
 1. `ANSIBLE_INVENTORY` env var
 2. `ansible.cfg` `[defaults] inventory =`
 3. Fallback paths: `hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.*`

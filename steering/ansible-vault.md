@@ -88,72 +88,26 @@ ansible-playbook playbook.yml \
 
 ## CI/CD integration
 
-### GitHub Actions
-
-```yaml
-- name: Run Ansible playbook
-  env:
-    VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
-  run: |
-    echo "$VAULT_PASSWORD" > /tmp/vault_pass
-    ansible-playbook playbook.yml --vault-password-file /tmp/vault_pass
-    rm -f /tmp/vault_pass
+```bash
+# Generic CI pattern — works for GitHub Actions, GitLab CI, Jenkins, etc.
+echo "$VAULT_PASSWORD" > /tmp/vault_pass
+ansible-playbook playbook.yml --vault-password-file /tmp/vault_pass
+rm -f /tmp/vault_pass
 ```
 
-### GitLab CI
+Source `$VAULT_PASSWORD` from your CI's secret store (GitHub Secrets, GitLab CI Variables, Jenkins Credentials, etc.).
 
-```yaml
-deploy:
-  variables:
-    VAULT_PASSWORD: $ANSIBLE_VAULT_PASSWORD
-  script:
-    - echo "$VAULT_PASSWORD" > /tmp/vault_pass
-    - ansible-playbook playbook.yml --vault-password-file /tmp/vault_pass
-    - rm -f /tmp/vault_pass
-```
+## External secret managers
 
-### Jenkins
+For dynamic/rotating secrets, use `lookup()` plugins instead of vault-encrypted files:
 
-```groovy
-withCredentials([string(credentialsId: 'ansible-vault-password', variable: 'VAULT_PASS')]) {
-    sh '''
-        echo "$VAULT_PASS" > /tmp/vault_pass
-        ansible-playbook playbook.yml --vault-password-file /tmp/vault_pass
-        rm -f /tmp/vault_pass
-    '''
-}
-```
+| Provider | Collection | Lookup call |
+|---|---|---|
+| HashiCorp Vault | `hvac` pip | `lookup('hashi_vault', 'secret=...')` |
+| AWS Secrets Manager | `boto3` pip | `lookup('amazon.aws.aws_secret', '...')` |
+| Azure Key Vault | `azure-keyvault-secrets` pip | `lookup('azure.azcollection.azure_keyvault_secret', '...')` |
 
-## External secret managers (alternative to vault)
-
-Dynamic/rotating secrets: use lookups, not encrypted files.
-
-### HashiCorp Vault — requires `hvac`
-
-```yaml
-- name: Fetch DB password
-  ansible.builtin.set_fact:
-    db_password: "{{ lookup('hashi_vault', 'secret=secret/data/db:password') }}"
-  no_log: true
-```
-
-### AWS Secrets Manager — requires `boto3`
-
-```yaml
-- name: Fetch API key from AWS
-  ansible.builtin.set_fact:
-    api_key: "{{ lookup('amazon.aws.aws_secret', 'prod/api_key', region='us-east-1') }}"
-  no_log: true
-```
-
-### Azure Key Vault — requires `azure-keyvault-secrets`
-
-```yaml
-- name: Fetch DB password from Azure
-  ansible.builtin.set_fact:
-    db_password: "{{ lookup('azure.azcollection.azure_keyvault_secret', 'db-password', vault_url='https://myvault.vault.azure.net') }}"
-  no_log: true
-```
+Always add `no_log: true` on tasks consuming secrets.
 
 ## Rules
 
