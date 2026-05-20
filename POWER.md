@@ -10,14 +10,14 @@ author: "Max Bergmann"
 
 ## MCP Tools
 
-| Tool | Purpose | Structured key | Auto-approved |
-|------|---------|----------------|---------------|
-| `lint_file` | Run ansible-lint on file or role directory | `findings[]` | true |
-| `syntax_check` | Validate playbook syntax without execution | `errors[]` | true |
-| `diff_check` | Preview changes with --check --diff mode | `recap{host}` | false |
-| `gather_facts` | Collect all facts from a host | `facts{}` | false |
-| `list_hosts` | Show hosts affected by playbook | `hosts[]` | true |
-| `list_tags` | List all tags in playbook | `tags[]` | true |
+| Tool | Purpose | Structured key |
+|------|---------|----------------|
+| `lint_file` | Run ansible-lint on file or role directory | `findings[]` |
+| `syntax_check` | Validate playbook syntax without execution | `errors[]` |
+| `diff_check` | Preview changes with --check --diff mode | `recap{host}` |
+| `gather_facts` | Collect all facts from a host | `facts{}` |
+| `list_hosts` | Show hosts affected by playbook | `hosts[]` |
+| `list_tags` | List all tags in playbook | `tags[]` |
 
 Shape: `{ok, stdout, stderr, <structured key>}`. Structured key = parsed output; raw `stdout`/`stderr` for debug/parse fallback.
 
