@@ -2,7 +2,7 @@
 name: "ansible"
 displayName: "Power Ansible"
 description: "Build, lint, and validate Ansible playbooks and roles with best practices and idempotent design patterns."
-keywords: ["ansible", "playbook", "handler", "role", "ansible-task", "ansible-lint", "ansible-inventory"]
+keywords: ["ansible", "playbook", "ansible-lint", "ansible-inventory", "ansible-vault", "ansible-galaxy"]
 author: "Max Bergmann"
 ---
 

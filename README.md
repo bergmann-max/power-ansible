@@ -1,34 +1,34 @@
 # Kiro Power: Ansible
 
-[![Kiro Power](https://img.shields.io/badge/kiro-power-9046FF)](https://kiro.dev/docs/powers/)
-[![Version](https://img.shields.io/github/v/tag/bergmann-max/power-ansible?label=version&color=blue&sort=semver)](https://github.com/bergmann-max/power-ansible/tags)
-[![License](https://img.shields.io/badge/license-MIT-blue?)](https://github.com/bergmann-max/power-ansible/blob/main/LICENSE)
+[![Kiro Power](https://img.shields.io/badge/kiro-power-8B43E8?logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMTUuMjUgMi40NUMxNC4zMiAyLjA4IDEzLjIzIDEuOTcgMTIuMzIgMi4wMEMxMS40MSAyLjAzIDEwLjUyIDIuMzAgOS43NyAyLjY0QzkuMDIgMi45OCA4LjM4IDMuNDAgNy44MCA0LjA0QzcuMjEgNC42OCA2LjcwIDQuOTkgNi4yNyA2LjQ2QzUuODMgNy45MiA1LjYwIDExLjEyIDUuMTggMTIuODNDNC43NyAxNC41NCAzLjk2IDE1Ljk0IDMuNzggMTYuNzFDMy42MCAxNy40OSAzLjkyIDE3LjI5IDQuMTAgMTcuNDhDNC4yOCAxNy42NyA0LjQwIDE3Ljg1IDQuODcgMTcuODZDNS4zMyAxNy44NyA2LjY0IDE3LjE2IDYuOTAgMTcuNTRDNy4xNyAxNy45MiA2LjQ2IDE5LjU2IDYuNDYgMjAuMTVDNi40NiAyMC43NSA2LjY3IDIwLjg0IDYuOTAgMjEuMTFDNy4xNCAyMS4zNyA3LjM1IDIxLjYzIDcuODYgMjEuNzVDOC4zNyAyMS44NiA5LjE5IDIyLjAyIDkuOTYgMjEuODFDMTAuNzQgMjEuNjAgMTEuOTIgMjAuNDcgMTIuNTEgMjAuNDdDMTMuMTAgMjAuNDcgMTMuMDcgMjEuNjAgMTMuNTMgMjEuODFDMTMuOTkgMjIuMDIgMTQuNTcgMjIuMDUgMTUuMjUgMjEuNzVDMTUuOTMgMjEuNDQgMTYuOTcgMjAuNjkgMTcuNjEgMTkuOTZDMTguMjQgMTkuMjMgMTguNjUgMTguNTkgMTkuMDcgMTcuMzVDMTkuNDkgMTYuMTEgMjAuMDYgMTQuMTkgMjAuMTUgMTIuNTFDMjAuMjUgMTAuODMgMjAuMDMgOC42OCAxOS42NCA3LjI5QzE5LjI2IDUuOTAgMTguNTkgNC45NyAxNy44NiA0LjE3QzE3LjEzIDMuMzYgMTYuMTcgMi44MSAxNS4yNSAyLjQ1Wk0xNS4yNCA5LjEyQTEuMDcgMS42NyAwLjIgMSAxIDE3LjM5IDkuMTJBMS4wNyAxLjY3IDAuMiAxIDEgMTUuMjQgOS4xMlpNMTMuOTkgOS4xMkExLjA3IDEuNjcgMTc5LjkgMSAxIDExLjg1IDkuMTJBMS4wNyAxLjY3IDE3OS45IDEgMSAxMy45OSA5LjEyWiIvPjwvc3ZnPg==&logoColor=white&style=for-the-badge)](https://kiro.dev/docs/powers/)
+[![Version](https://img.shields.io/github/v/tag/bergmann-max/power-ansible?label=version&color=green&&sort=semver&style=for-the-badge)](https://github.com/bergmann-max/power-ansible/tags)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](https://github.com/bergmann-max/power-ansible/blob/main/LICENSE)
 
-A [Kiro Power](https://kiro.dev/docs/powers/) that provides an MCP server and steering files to build, lint, and validate Ansible playbooks and roles.
+[Kiro Power](https://kiro.dev/docs/powers/) that provides an MCP server and steering files to build, lint, and validate Ansible playbooks and roles with best practices.
 
 ## MCP Tools
 
-- `lint_file` — ansible-lint on file or role directory
-- `syntax_check` — validate playbook syntax without execution
-- `diff_check` — preview changes via `--check --diff`
-- `gather_facts` — collect facts from a host via setup module
-- `list_hosts` — list hosts affected by playbook
-- `list_tags` — list tags defined in playbook
+- `lint_file` - ansible-lint on file or role directory
+- `syntax_check` - validate playbook syntax without execution
+- `diff_check` - preview changes via `--check --diff`
+- `gather_facts` - collect facts from a host via setup module
+- `list_hosts` - list hosts affected by playbook
+- `list_tags` - list tags defined in playbook
 
 ## Steering Files
 
-- `ansible-best-practices.md` — core patterns, idempotency, YAML style, naming
-- `ansible-role-structure.md` — role layout, task organization, handlers, defaults
-- `ansible-playbook-workflow.md` — playbook creation, execution, play structure
-- `ansible-jinja.md` — Jinja2 filters, tests, lookups, whitespace control
-- `ansible-inventory.md` — inventory structure, group_vars, host_vars, dynamic inventory
-- `ansible-config.md` — `ansible.cfg` defaults, SSH, privilege escalation, callbacks, plugins
-- `ansible-vault.md` — secrets management, encryption patterns
-- `ansible-collections.md` — Galaxy collections, requirements.yml, namespaces
+- `ansible-best-practices.md` - core patterns, idempotency, YAML style, naming
+- `ansible-role-structure.md` - role layout, task organization, handlers, defaults
+- `ansible-playbook-workflow.md` - playbook creation, execution, play structure
+- `ansible-jinja.md` - Jinja2 filters, tests, lookups
+- `ansible-inventory.md` - inventory structure, group_vars, host_vars, dynamic inventory
+- `ansible-config.md` - `ansible.cfg` defaults, SSH, privilege escalation, callbacks, plugins
+- `ansible-vault.md` - secrets management, encryption patterns
+- `ansible-collections.md` - Galaxy collections, requirements.yml, namespaces
 
 ## Prerequisites
 
-[`uv`](https://docs.astral.sh/uv/) must be installed. Python dependencies (`ansible-core`, `ansible-lint`, `mcp`) auto-install via `uvx` on first run.
+Requires [`uv`](https://docs.astral.sh/uv/). Python dependencies (`ansible-core`, `ansible-lint`, `mcp`) are resolved by `uvx`.
 
 **Install uv:**
 ```bash
@@ -53,6 +53,14 @@ https://github.com/bergmann-max/power-ansible
 git clone https://github.com/bergmann-max/power-ansible.git
 ```
 Then in Kiro Powers Panel → "Add Custom Power" → "Local Directory" → provide path
+
+## Activation
+
+Kiro loads this Power's MCP tools and steering files into context whenever your chat message contains one of these keywords:
+
+```
+ansible, playbook, ansible-lint, ansible-inventory, ansible-vault, ansible-galaxy
+```
 
 ## Documentation
 
