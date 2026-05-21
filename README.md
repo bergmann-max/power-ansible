@@ -63,7 +63,7 @@ Then in Kiro Powers Panel → "Add Custom Power" → "Local Directory" → provi
 Kiro loads this Power's MCP tools and steering files into context whenever your chat message contains one of these keywords:
 
 ```text
-ansible, playbook, role, handler, inventory, vault, iac, automation
+ansible, playbook, role, handler, inventory, vault
 ```
 
 ## Documentation

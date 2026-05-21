@@ -1,16 +1,41 @@
 ---
 name: "ansible"
-displayName: "Power Ansible"
+displayName: "Ansible"
 description: "Build, lint, and validate Ansible playbooks and roles with best practices and idempotent design patterns."
-keywords: ["ansible", "playbook", "role", "handler", "inventory", "vault", "iac", "automation"]
+keywords: ["ansible", "playbook", "role", "handler", "inventory", "vault"]
 author: "Max Bergmann"
 ---
 
-# Power Ansible
+# Ansible
 
 ## Overview
 
 MCP server + steering files for authoring Ansible playbooks and roles. Tools wrap `ansible-lint`, `ansible-playbook --syntax-check`, `--check --diff`, fact gathering, host/tag listing. Steering files codify production-profile lint rules, FQCN, idempotency, role layout, Jinja2, vault, Galaxy collections.
+
+## Onboarding
+
+First-time setup. MCP server (`mcp-ansible`) launches via [`uv`](https://docs.astral.sh/uv/) — required prerequisite. Python deps (`ansible-core`, `ansible-lint`, `mcp`) resolved automatically by `uvx` on first call (cached after).
+
+**Install `uv`:**
+
+```bash
+# Linux / macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**Verify:**
+
+```bash
+uv --version
+uvx --version
+```
+
+**First MCP call:** ~30s — `uvx` resolves and caches dependencies from `git+https://github.com/bergmann-max/mcp-ansible.git`. Subsequent calls start instantly.
+
+**Note:** Power version (this repo) and MCP server version (`mcp-ansible`, pinned in `mcp.json`) are independent. Power updates ship steering + workflow changes; server updates ship tool-behavior changes.
 
 ## MCP Tools
 
@@ -116,7 +141,72 @@ Returns `tags: [str]` — deduplicated, sorted, parsed from `TASK TAGS: [...]` l
 
 ---
 
-## When to Load Steering Files
+## Tool Usage Examples
+
+### Lint a Playbook or Role
+
+```text
+lint_file(path="playbooks/site.yml", project_root="/home/user/ansible-repo")
+// Returns { findings: [] } on clean pass
+// Returns { findings: [{rule, severity, file, line, message, url}] } on violations
+
+lint_file(path="roles/nginx", project_root="/home/user/ansible-repo", profile="production")
+// Role-level rules fire only on full directory — don't lint isolated tasks/main.yml
+```
+
+### Validate Syntax
+
+```text
+syntax_check(playbook="playbooks/site.yml", project_root="/home/user/ansible-repo")
+// Returns { ok: true, errors: [] }
+// On failure: { ok: false, errors: ["ERROR! ...", ...] }
+```
+
+### Dry-Run Against Real Hosts
+
+```text
+diff_check(playbook="playbooks/site.yml", project_root="/home/user/ansible-repo", limit="staging")
+// Returns { recap: {host: {ok, changed, unreachable, failed, skipped, rescued, ignored}} }
+// ⚠ Needs SSH to real hosts — gate behind user approval
+```
+
+### Inspect Before Editing (Read-Only)
+
+```text
+// What hosts does this playbook target?
+list_hosts(playbook="playbooks/site.yml", project_root="/home/user/ansible-repo")
+// Returns { hosts: ["web01.example.com", "web02.example.com"] }
+
+// What tags can I filter by?
+list_tags(playbook="playbooks/site.yml", project_root="/home/user/ansible-repo")
+// Returns { tags: ["always", "config", "install", "never", "packages"] }
+
+// What facts does a host expose?
+gather_facts(host="web01.example.com", project_root="/home/user/ansible-repo")
+// Returns { facts: {web01.example.com: {ansible_distribution: "Ubuntu", ...}} }
+```
+
+### Full Validation Chain
+
+```text
+// 1. Syntax first (no inventory, no SSH)
+syntax_check(playbook="playbooks/web.yml", project_root="/home/user/ansible-repo")
+// → { ok: true, errors: [] }
+
+// 2. Lint with production profile
+lint_file(path="playbooks/web.yml", project_root="/home/user/ansible-repo", profile="production")
+// → { findings: [{rule: "name[missing]", severity: "VERY_HIGH", file: "playbooks/web.yml", line: 12}] }
+
+// 3. Dry-run against staging (SSH required)
+diff_check(playbook="playbooks/web.yml", project_root="/home/user/ansible-repo", limit="staging")
+// → { recap: {web01: {ok: 3, changed: 1, unreachable: 0, failed: 0, skipped: 0}} }
+```
+
+---
+
+## Available Steering Files
+
+Load on demand per task — do not preload all.
 
 - Code style, idempotency, YAML, naming → `ansible-best-practices.md`
 - New role → `ansible-role-structure.md`
@@ -221,7 +311,7 @@ Power-specific failure modes. Ansible-level troubleshooting → "Troubleshooting
 
 ### MCP server fails to start
 
-- **`uvx: command not found`** — `uv` missing. Install per README Prerequisites.
+- **`uvx: command not found`** — `uv` missing. Install per `## Onboarding` above.
 - **First start hangs ~30s** — `uvx` resolves `ansible-core`, `ansible-lint`, `mcp` on first call. Subsequent starts cached.
 - **`git+https://...@0.2.0` not found** — `mcp-ansible` repo unreachable or tag removed. Check network + `https://github.com/bergmann-max/mcp-ansible/tags`.
 - **Server starts, tools not visible** — Reload Kiro Powers Panel. Inspect MCP logs for handshake errors.
@@ -265,3 +355,15 @@ Unlike `lint_file` / `syntax_check` (offline), `diff_check` connects to inventor
 - No SSH key / wrong user → connection timeout.
 - `host_key_checking = True` + unknown host → first run fails. Provision `known_hosts` or set `False` in `ansible.cfg`.
 - Always run against staging/limit first: `limit="staging"`.
+
+---
+
+## Resources
+
+- [Ansible Documentation](https://docs.ansible.com/ansible/latest/)
+- [ansible-lint Rules](https://docs.ansible.com/projects/lint/rules/)
+- [Ansible Galaxy](https://galaxy.ansible.com)
+- [Jinja2 Template Designer](https://jinja.palletsprojects.com/en/stable/templates/)
+- [MCP Server (mcp-ansible)](https://github.com/bergmann-max/mcp-ansible)
+- [Kiro Powers Docs](https://kiro.dev/docs/powers/)
+- [Install `uv`](https://docs.astral.sh/uv/)

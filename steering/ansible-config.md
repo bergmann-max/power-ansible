@@ -110,7 +110,7 @@ See `ansible-vault.md` for vault password-file management.
 
 ## Anti-patterns
 
-- `host_key_checking = True` without provisioning `known_hosts` first → first run fails on every new host. Disabling (`ANSIBLE_HOST_KEY_CHECKING=False`) may be acceptable in CI pipelines, ephemeral runners, or container tests (Molecule) where MITM risk bounded — user decides on network trust model.
+- `host_key_checking = True` without provisioning `known_hosts` first → first run fails on every new host. Disabling (`ANSIBLE_HOST_KEY_CHECKING=False`) may be acceptable in CI pipelines, ephemeral runners, or container tests where MITM risk bounded — user decides on network trust model.
 - `forks = 100+` without bumping `ulimit -n` and SSH `MaxSessions`.
 - `pipelining = True` where sudoers enforces `requiretty` — task fails with "sudo: sorry, you must have a tty".
 - Committing `vault_password_file` content. Path goes in cfg; file itself gitignored.
