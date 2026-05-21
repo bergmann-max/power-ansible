@@ -6,7 +6,7 @@ Full role layout spec:
 
 ## Required directory layout
 
-```
+```text
 roles/<role_name>/
 ├── tasks/
 │   ├── main.yml          # entry point — include_tasks the others
@@ -152,7 +152,7 @@ Double-underscore prefix signals "internal".
 
 Every `.j2` starts with:
 
-```
+```jinja
 {# Managed by Ansible – role: {{ role_name }} #}
 {# Manual changes will be overwritten on the next Ansible run! #}
 ```
@@ -203,6 +203,6 @@ galaxy_info:
 
 Lint enforces only `name` first and `block`/`rescue`/`always` last. Convention:
 
-```
+```text
 name → module → when → loop → register → notify → tags → block/rescue/always
 ```

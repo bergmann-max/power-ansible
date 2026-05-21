@@ -8,6 +8,7 @@ Full vault CLI ref:
 Vault for **static secrets** in repo: DB passwords, API tokens, SSH/TLS private keys.
 
 Do **not** use vault for:
+
 - Non-sensitive config (ports, paths, package names).
 - Public certificates.
 - Frequently rotating secrets → external secret manager.
@@ -16,7 +17,7 @@ Do **not** use vault for:
 
 Only layout used here. No inline `!vault` blobs.
 
-```
+```text
 group_vars/
 └── all/
     ├── vars.yml       # plain
@@ -112,11 +113,14 @@ Always add `no_log: true` on tasks consuming secrets.
 ## Rules
 
 1. Never commit `vault_pass*` files — add to `.gitignore`:
-   ```
+
+   ```text
    **/vault_pass*
    **/.vault_pass*
    ```
+
 2. Tasks consuming secret get `no_log: true`:
+
    ```yaml
    - name: Create database user
      community.postgresql.postgresql_user:
@@ -124,8 +128,10 @@ Always add `no_log: true` on tasks consuming secrets.
        password: "{{ vault_db_password }}"
      no_log: true
    ```
+
 3. Rotate vault password on personnel changes: `ansible-vault rekey <file>`.
 4. After editing vault file, sanity-check:
+
    ```bash
    ansible-vault view group_vars/all/vault.yml
    ansible-playbook playbook.yml --syntax-check --ask-vault-pass

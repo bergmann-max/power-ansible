@@ -80,7 +80,7 @@ Only when extracting in-repo modules into distributable package.
 ansible-galaxy collection init my_namespace.my_collection
 ```
 
-```
+```text
 my_namespace/my_collection/
 ├── galaxy.yml        # namespace, name, version, deps
 ├── README.md
@@ -91,6 +91,7 @@ my_namespace/my_collection/
 ```
 
 Build + install locally:
+
 ```bash
 ansible-galaxy collection build
 ansible-galaxy collection install my_namespace-my_collection-1.0.0.tar.gz

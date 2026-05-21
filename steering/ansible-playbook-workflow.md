@@ -34,6 +34,7 @@
 ```
 
 ## Task Naming Conventions
+
 - Format: `Verb + Object` → "Install nginx", "Configure sshd", "Start application"
 - Language: English
 - No abbreviations: `Configure` not `Cfg`
@@ -41,6 +42,7 @@
 - ansible-lint `name[missing]`: every task MUST have `name:`
 
 ## no-free-form – never use inline command syntax
+
 ```yaml
 # GOOD
 - name: Run migration
@@ -53,13 +55,16 @@
 ```
 
 ## What NEVER Belongs in a Playbook
+
 - Plain-text passwords → `ansible-vault encrypt_string` or external (CI/CD secrets, HashiCorp Vault) via `-e`
 - `ignore_errors: true` without comment why
 - `shell:` or `command:` when Ansible module exists
 - `yes`/`no`/`True`/`False` booleans → always `true`/`false` (`yaml[truthy]`)
 
 ## Tags Strategy
+
 Every play + task gets tags:
+
 ```yaml
 tags:
   - install     # for installation tasks
@@ -69,7 +74,9 @@ tags:
 ```
 
 ## Idempotency Checklist
+
 Check before commit:
+
 - [ ] Playbook runs twice without errors + no unwanted changes?
 - [ ] All `command:`/`shell:` tasks have `changed_when:`?
 - [ ] `command:`/`shell:` tasks with unreliable exit codes have `failed_when:`?

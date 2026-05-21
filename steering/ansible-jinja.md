@@ -71,7 +71,7 @@ Standard filters (`upper`, `trim`, `length`, `sort`, `replace`, `int`, `bool`,
 |---|---|
 | `mandatory('msg')` | Fail render if var undefined — use instead of silent default |
 | `combine(other, recursive=true)` | Deep merge dicts; without `recursive`, nested keys overwritten |
-| `map(attribute='k')` | Pluck attr from each dict; **always** `| list` after — see anti-patterns |
+| `map(attribute='k')` | Pluck attr from each dict; **always** `\| list` after — see anti-patterns |
 
 ## Whitespace control
 
@@ -235,6 +235,7 @@ names: "{{ servers | map(attribute='name') | list }}"
 ```
 
 Render template locally without running playbook:
+
 ```bash
 ansible localhost -m template -a "src=templates/nginx.conf.j2 dest=/tmp/out.conf" \
   -e @group_vars/all.yml

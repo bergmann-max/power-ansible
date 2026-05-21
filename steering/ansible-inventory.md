@@ -9,6 +9,7 @@ Inventory plugin reference + dynamic-inventory docs:
 - `hosts.yml` for nested groups + larger projects.
 
 MCP tools resolve inventory in this order:
+
 1. `ANSIBLE_INVENTORY` env var
 2. `ansible.cfg` `[defaults] inventory =`
 3. Fallback paths: `hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.*`
@@ -66,7 +67,7 @@ all:
 
 ## Vars layout
 
-```
+```text
 inventory/
 ├── hosts.yml
 ├── group_vars/
@@ -113,6 +114,7 @@ compose:
 ```
 
 Enable plugin in `ansible.cfg`:
+
 ```ini
 [defaults]
 inventory = inventory/

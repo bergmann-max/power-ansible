@@ -31,6 +31,7 @@
 Requires [`uv`](https://docs.astral.sh/uv/). Python dependencies (`ansible-core`, `ansible-lint`, `mcp`) are resolved by `uvx`.
 
 **Install uv:**
+
 ```bash
 # Linux/macOS
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -44,21 +45,24 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 **Via GitHub (recommended):**
 
 In Kiro Powers Panel → "Add Custom Power" → "Git Repository"
-```
+
+```text
 https://github.com/bergmann-max/power-ansible
 ```
 
 **Via Local Directory:**
+
 ```bash
 git clone https://github.com/bergmann-max/power-ansible.git
 ```
+
 Then in Kiro Powers Panel → "Add Custom Power" → "Local Directory" → provide path
 
 ## Activation
 
 Kiro loads this Power's MCP tools and steering files into context whenever your chat message contains one of these keywords:
 
-```
+```text
 ansible, playbook, role, handler, inventory, vault, iac, automation
 ```
 
