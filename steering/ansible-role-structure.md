@@ -191,7 +191,7 @@ galaxy_info:
   author: Your Team
   description: What this role does
   license: MIT
-  min_ansible_version: "2.16"
+  min_ansible_version: "2.20"
   platforms:
     - name: Ubuntu
       versions: [jammy, noble]
