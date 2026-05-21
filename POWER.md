@@ -6,28 +6,113 @@ keywords: ["ansible", "playbook", "role", "handler", "inventory", "vault", "iac"
 author: "Max Bergmann"
 ---
 
-# Ansible Power
+# Power Ansible
+
+## Overview
+
+MCP server + steering files for authoring Ansible playbooks and roles. Tools wrap `ansible-lint`, `ansible-playbook --syntax-check`, `--check --diff`, fact gathering, host/tag listing. Steering files codify production-profile lint rules, FQCN, idempotency, role layout, Jinja2, vault, Galaxy collections.
 
 ## MCP Tools
 
-| Tool | Purpose | Structured key |
-|------|---------|----------------|
-| `lint_file` | Run ansible-lint on file or role directory | `findings[]` |
-| `syntax_check` | Validate playbook syntax without execution | `errors[]` |
-| `diff_check` | Preview changes with --check --diff mode | `recap{host}` |
-| `gather_facts` | Collect all facts from a host | `facts{}` |
-| `list_hosts` | Show hosts affected by playbook | `hosts[]` |
-| `list_tags` | List all tags in playbook | `tags[]` |
+| Tool | Purpose | Inventory | Structured key | Timeout |
+|------|---------|-----------|----------------|---------|
+| `lint_file` | ansible-lint on file or role dir | no | `findings[]` | 300s |
+| `syntax_check` | Validate playbook syntax | no | `errors[]` | 60s |
+| `diff_check` | `--check --diff` dry-run | yes | `recap{host}` | 300s |
+| `gather_facts` | Run setup module on host/group | yes | `facts{host}` | 300s |
+| `list_hosts` | Hosts affected by playbook | yes | `hosts[]` | 60s |
+| `list_tags` | Tags defined in playbook | yes | `tags[]` | 60s |
 
-Shape: `{ok, stdout, stderr, <structured key>}`. Structured key = parsed output; raw `stdout`/`stderr` for debug/parse fallback.
+**Return shape (all tools):** `{ok: bool, stdout: str, stderr: str, <structured key>}`. On validation failure (missing path, bad `project_root`, no inventory): `{ok: false, error: str}` — no `stdout`/`stderr`.
 
-Workspace: auto via MCP `roots`. Else pass `project_root` as absolute path per call.
+**Workspace resolution:** MCP `roots` capability first; else `project_root` (absolute path) required per call. Relative paths or unresolved `${VAR}` rejected.
 
-Inventory order:
+**Inventory resolution** (`diff_check`, `gather_facts`, `list_hosts`, `list_tags`):
 
-1. `ANSIBLE_INVENTORY` env var
-2. `ansible.cfg` → `[defaults] inventory`
+1. `ANSIBLE_INVENTORY` env var (passed verbatim — supports comma-lists)
+2. `ansible.cfg` → `[defaults] inventory` (comma-list resolved vs `project_root`)
 3. Fallback: `hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.*`
+
+### `lint_file`
+
+```text
+lint_file(path: str, project_root: str = "", profile: str = "production")
+```
+
+| Arg | Type | Required | Default | Notes |
+|-----|------|----------|---------|-------|
+| `path` | str | yes | — | Absolute, or relative to `project_root`. File or role dir. |
+| `project_root` | str | conditional | `""` | Required when MCP `roots` unavailable. Absolute. |
+| `profile` | str | no | `"production"` | `min` \| `basic` \| `moderate` \| `safety` \| `shared` \| `production` \| `default` (= use repo `.ansible-lint`). |
+
+Returns `findings: [{rule, severity, file, line, message, url}]` parsed from `ansible-lint --format json`. Empty list on clean lint.
+
+### `syntax_check`
+
+```text
+syntax_check(playbook: str, project_root: str = "")
+```
+
+| Arg | Type | Required | Default | Notes |
+|-----|------|----------|---------|-------|
+| `playbook` | str | yes | — | Path to playbook file. |
+| `project_root` | str | conditional | `""` | See workspace resolution. |
+
+Returns `errors: [str]` — non-`[WARNING]` stderr lines when `ok=false`. Empty list when syntax valid.
+
+### `diff_check`
+
+```text
+diff_check(playbook: str, project_root: str = "", limit: str = "")
+```
+
+| Arg | Type | Required | Default | Notes |
+|-----|------|----------|---------|-------|
+| `playbook` | str | yes | — | Path to playbook file. |
+| `project_root` | str | conditional | `""` | See workspace resolution. |
+| `limit` | str | no | `""` | `--limit` pattern: group, host, or comma-list. |
+
+Returns `recap: {host: {ok, changed, unreachable, failed, skipped, rescued, ignored}}` parsed from PLAY RECAP. Diff bodies in raw `stdout`. **Connects to real hosts via SSH** — gated, never auto-approve. Dry-run caveats: see `## Troubleshooting → diff_check misleading output`.
+
+### `gather_facts`
+
+```text
+gather_facts(host: str, project_root: str = "")
+```
+
+| Arg | Type | Required | Default | Notes |
+|-----|------|----------|---------|-------|
+| `host` | str | yes | — | Inventory hostname OR group name. |
+| `project_root` | str | conditional | `""` | See workspace resolution. |
+
+Returns `facts: {hostname: {ansible_facts}}` for `SUCCESS` hosts only. `UNREACHABLE!` / `FAILED!` hosts silently dropped — check raw `stdout` to detect. Single-host call = one-entry map.
+
+### `list_hosts`
+
+```text
+list_hosts(playbook: str, project_root: str = "", limit: str = "")
+```
+
+| Arg | Type | Required | Default | Notes |
+|-----|------|----------|---------|-------|
+| `playbook` | str | yes | — | Path to playbook file. |
+| `project_root` | str | conditional | `""` | See workspace resolution. |
+| `limit` | str | no | `""` | `--limit` pattern. |
+
+Returns `hosts: [str]` — flat list parsed from `ansible-playbook --list-hosts`.
+
+### `list_tags`
+
+```text
+list_tags(playbook: str, project_root: str = "")
+```
+
+| Arg | Type | Required | Default | Notes |
+|-----|------|----------|---------|-------|
+| `playbook` | str | yes | — | Path to playbook file. |
+| `project_root` | str | conditional | `""` | See workspace resolution. |
+
+Returns `tags: [str]` — deduplicated, sorted, parsed from `TASK TAGS: [...]` lines.
 
 ---
 
@@ -127,3 +212,56 @@ Inventory order:
 1. Write `inventory/hosts.yml` (or `hosts.ini`) via file tools.
 2. Follow `ansible-inventory.md` (groups, group_vars, host_vars).
 3. Verify: `list_hosts` on any playbook.
+
+---
+
+## Troubleshooting
+
+Power-specific failure modes. Ansible-level troubleshooting → "Troubleshooting Playbook Development" workflow above.
+
+### MCP server fails to start
+
+- **`uvx: command not found`** — `uv` missing. Install per README Prerequisites.
+- **First start hangs ~30s** — `uvx` resolves `ansible-core`, `ansible-lint`, `mcp` on first call. Subsequent starts cached.
+- **`git+https://...@0.2.0` not found** — `mcp-ansible` repo unreachable or tag removed. Check network + `https://github.com/bergmann-max/mcp-ansible/tags`.
+- **Server starts, tools not visible** — Reload Kiro Powers Panel. Inspect MCP logs for handshake errors.
+
+### `project_root` resolution
+
+- **`roots not provided` / tool errors out** — Kiro did not pass workspace `roots` via MCP protocol. Pass explicit `project_root="/absolute/path"` on every call.
+- **Relative path** — Always fails. Must be absolute.
+- **Wrong path** — Silent: `lint_file` finds no files, `list_hosts` returns empty. Verify path matches repo root containing `ansible.cfg` / `inventory/`.
+
+### Inventory not found
+
+`list_hosts` empty or `gather_facts` fails on group name → inventory resolution failed. Resolution order:
+
+1. `ANSIBLE_INVENTORY` env var — **scope = MCP server process**, not your shell. Set via Kiro MCP env config, not `.bashrc`.
+2. `ansible.cfg` → `[defaults] inventory = ...`
+3. Fallback: `hosts.yml`, `hosts.yaml`, `hosts.ini`, `inventory/hosts.*` relative to `project_root`.
+
+### Lint vs. syntax divergence
+
+- `lint_file` clean, playbook still fails at runtime → `lint_file` does not catch all syntax edges. Always run `syntax_check` in addition.
+- `lint_file` on a role directory vs. a single task file produces different rule sets (role-level rules only fire on full role tree). Lint the whole `roles/<name>/` dir, not isolated task files.
+
+### `diff_check` misleading output
+
+Dry-run = prediction, not guarantee. Full caveat list in "Validating Playbook Design" workflow above. Common cases:
+
+- Handlers do not fire in check mode → add `force_handlers: true` if downstream tasks depend on handler side effects.
+- `command`/`shell`/`script` skipped unless `check_mode: false` per task.
+- 3rd-party modules without check-mode support report no diff. Verify via `ansible-doc <fqcn> | grep check_mode`.
+
+### Vault errors during `lint_file` / `syntax_check`
+
+- **`no vault secrets found`** — `vault_password_file` not configured. Set in `ansible.cfg` or via `ANSIBLE_VAULT_PASSWORD_FILE` env in MCP server process. See `ansible-vault.md`.
+- **`Decryption failed`** — wrong password or missing `--vault-id` when multiple IDs in use.
+
+### `diff_check` requires SSH to real hosts
+
+Unlike `lint_file` / `syntax_check` (offline), `diff_check` connects to inventory hosts via SSH. Failure modes:
+
+- No SSH key / wrong user → connection timeout.
+- `host_key_checking = True` + unknown host → first run fails. Provision `known_hosts` or set `False` in `ansible.cfg`.
+- Always run against staging/limit first: `limit="staging"`.
