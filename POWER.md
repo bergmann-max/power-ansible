@@ -313,7 +313,7 @@ Power-specific failure modes. Ansible-level troubleshooting → "Troubleshooting
 
 - **`uvx: command not found`** — `uv` missing. Install per `## Onboarding` above.
 - **First start hangs ~30s** — `uvx` resolves `ansible-core`, `ansible-lint`, `mcp` on first call. Subsequent starts cached.
-- **`git+https://...@0.2.0` not found** — `mcp-ansible` repo unreachable or tag removed. Check network + `https://github.com/bergmann-max/mcp-ansible/tags`.
+- **`git+https://...@0.3.0` not found** — `mcp-ansible` repo unreachable or tag removed. Check network + `https://github.com/bergmann-max/mcp-ansible/tags`.
 - **Server starts, tools not visible** — Reload Kiro Powers Panel. Inspect MCP logs for handshake errors.
 
 ### `project_root` resolution

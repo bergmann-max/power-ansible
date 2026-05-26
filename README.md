@@ -28,7 +28,7 @@
 
 ## Prerequisites
 
-Requires [`uv`](https://docs.astral.sh/uv/). Python dependencies (`ansible-core`, `ansible-lint`, `mcp`) are resolved by `uvx`.
+Requires [`uv`](https://docs.astral.sh/uv/) and Python 3.12+. Dependencies (`ansible-core>=2.20`, `ansible-lint>=25.6`, `fastmcp>=3`) are resolved by `uvx`.
 
 **Install uv:**
 
