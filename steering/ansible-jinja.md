@@ -94,13 +94,7 @@ server {
 {%- endfor %}
 ```
 
-For `templates/*.j2`, set in playbook or globally via `ansible.cfg`:
-
-```ini
-# ansible.cfg — trim/lstrip applied to ALL templates
-[defaults]
-jinja2_native = False
-```
+Whitespace trimming is controlled per-template via module parameters (defaults: `trim_blocks=true`, `lstrip_blocks=false`):
 
 ```yaml
 # Per-task override

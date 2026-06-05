@@ -8,7 +8,7 @@ Project rules + `ansible-lint` violations `lint_file` tool surface. General Ansi
 1. **FQCN only** — every module call use `ansible.builtin.<name>` (or
    `<collection>.<name>` non-builtin). Lint: `fqcn[action]`.
 2. **Mode is ugo, never octal** — `mode: 'u=rw,g=r,o=r'`, not `'0644'`. `o=`
-   mandatory even when other no perms (`mode: 'u=rw,g=r,o='`).
+   mandatory even when others have no permissions (`mode: 'u=rw,g=r,o='`).
 3. **Pin versions** — `state: present` + pinned version, never
    `state: latest`. Lint: `package-latest`.
 4. **Every task has a name** — uppercase first char. Lint:
@@ -70,19 +70,24 @@ semantics (`state: present/absent`) or `creates:`/`removes:` on
 
 ```yaml
 # GOOD Idempotent — package module
-- ansible.builtin.package: { name: nginx, state: present }
+- name: Install nginx
+  ansible.builtin.package: { name: nginx, state: present }
 
 # GOOD Idempotent — creates: marker
-- ansible.builtin.command:
+- name: Download app archive
+  ansible.builtin.command:
     cmd: wget https://example.com/app.tar.gz -O /opt/app.tar.gz
     creates: /opt/app.tar.gz
 
 # BAD Not idempotent — re-downloads every run
-- ansible.builtin.command:
+- name: Download app archive
+  ansible.builtin.command:
     cmd: wget https://example.com/app.tar.gz
 
 # BAD Not idempotent — keeps appending
-- ansible.builtin.shell: echo "config=value" >> /etc/app.conf
+- name: Append config
+  ansible.builtin.shell:
+    cmd: echo "config=value" >> /etc/app.conf
 ```
 
 ## Variable precedence
