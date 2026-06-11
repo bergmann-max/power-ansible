@@ -38,9 +38,60 @@ uvx --version
 
 **Install slash commands:**
 
-Read each `.kiro.hook` file from this power's `hooks/` directory and write it to `.kiro/hooks/` in the workspace root. Create `.kiro/hooks/` if it doesn't exist. The hooks are: `ansible-new-role`, `ansible-new-playbook`, `ansible-fix-lint`.
+Create `.kiro/hooks/` in the workspace root if it does not exist. For each file below, write it only if it does not already exist at that path.
 
-> Available slash commands: `/ansible-new-role`, `/ansible-new-playbook`, `/ansible-fix-lint`.
+`.kiro/hooks/ansible-new-playbook.kiro.hook`:
+```json
+{
+  "enabled": true,
+  "name": "ansible-new-playbook",
+  "description": "Scaffold a new Ansible playbook following the project conventions",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Scaffold a new Ansible playbook:\n1. Ask user for the playbook name\n2. Load the steering file 'ansible-playbook-workflow.md' from this power\n3. Create playbooks/<name>.yml following the required structure skeleton (hosts, gather_facts, become, tags, pre_tasks, tasks, handlers, post_tasks)\n4. Use the skeleton from the steering file - include assert in pre_tasks, proper tag structure\n5. Run syntax_check on the created playbook\n6. Run lint_file with profile='production' on the created playbook"
+  }
+}
+```
+
+`.kiro/hooks/ansible-new-role.kiro.hook`:
+```json
+{
+  "enabled": true,
+  "name": "ansible-new-role",
+  "description": "Scaffold a new Ansible role following the project conventions",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Scaffold a new Ansible role:\n1. Ask user for the role name\n2. Load the steering file 'ansible-role-structure.md' from this power\n3. Create the complete directory structure: roles/<name>/tasks/main.yml, handlers/main.yml, defaults/main.yml, vars/main.yml, meta/main.yml, README.md, templates/.gitkeep, files/.gitkeep\n4. Follow the skeleton patterns from the steering file for each file\n5. Populate tasks/main.yml with the include_tasks orchestration skeleton\n6. Populate defaults/main.yml with commented vars\n7. Populate meta/main.yml with galaxy_info stub\n8. Run lint_file on the created role directory"
+  }
+}
+```
+
+`.kiro/hooks/ansible-fix-lint.kiro.hook`:
+```json
+{
+  "enabled": true,
+  "name": "ansible-fix-lint",
+  "description": "Auto-fix mechanically fixable ansible-lint violations",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Auto-fix ansible-lint violations on the current file/role:\n1. Identify the target file or role directory (ask user if ambiguous)\n2. Load steering file 'ansible-best-practices.md' from this power\n3. Run lint_file with profile='production' on the target\n4. For each fixable finding, apply the fix per the steering rules:\n   - name[missing]: add name to unnamed task\n   - name[casing]: uppercase first letter\n   - fqcn[action]: add ansible.builtin. prefix\n   - yaml[truthy]: yes/no → true/false\n   - no-free-form: wrap in cmd: key\n   - no-changed-when: add changed_when: false for read-only commands\n   - package-latest: pin version, change state to present\n5. Show a table: fixed violations vs remaining (non-mechanical)\n6. Re-run lint_file to confirm which are resolved"
+  }
+}
+```
+
+> Available slash commands after install: `/ansible-new-playbook`, `/ansible-new-role`, `/ansible-fix-lint`.
 
 ## MCP Tools
 
