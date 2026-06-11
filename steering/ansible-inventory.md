@@ -25,7 +25,7 @@ all:
   children:
     webservers:
       hosts:
-        web01.example.com:    # FQDN as the inventory key — no ansible_host needed
+        web01.example.com:    # FQDN as the inventory key - no ansible_host needed
         web02.example.com:
       vars:
         nginx_port: 80
@@ -47,7 +47,7 @@ all:
 
 ## `ansible_host` rule
 
-Set `ansible_host` only when inventory name **not** real DNS name — alias, IP-only host, or name differs from connection target. Else omit; FQDN inventory key = connection target.
+Set `ansible_host` only when inventory name **not** real DNS name - alias, IP-only host, or name differs from connection target. Else omit; FQDN inventory key = connection target.
 
 ```yaml
 all:

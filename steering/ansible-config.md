@@ -12,7 +12,7 @@ Ansible search order, uses **first** found:
 3. `~/.ansible.cfg`
 4. `/etc/ansible/ansible.cfg`
 
-Always commit project-local `ansible.cfg` at repo root. No global config reliance — playbooks must behave same on any dev machine and CI.
+Always commit project-local `ansible.cfg` at repo root. No global config reliance - playbooks must behave same on any dev machine and CI.
 
 ## Minimum recommended config
 
@@ -74,7 +74,7 @@ become_ask_pass      = False
 
 ### `[privilege_escalation]`
 
-Always declare even if defaults match — explicit beats implicit. Never set `become_ask_pass = True` in committed config; use `--ask-become-pass` on CLI or vault for sudo passwords.
+Always declare even if defaults match - explicit beats implicit. Never set `become_ask_pass = True` in committed config; use `--ask-become-pass` on CLI or vault for sudo passwords.
 
 ### `[inventory]` (plugins)
 
@@ -110,12 +110,12 @@ See `ansible-vault.md` for vault password-file management.
 
 ## Anti-patterns
 
-- `host_key_checking = True` without provisioning `known_hosts` first → first run fails on every new host. Disabling (`ANSIBLE_HOST_KEY_CHECKING=False`) may be acceptable in CI pipelines, ephemeral runners, or container tests where MITM risk bounded — user decides on network trust model.
+- `host_key_checking = True` without provisioning `known_hosts` first → first run fails on every new host. Disabling (`ANSIBLE_HOST_KEY_CHECKING=False`) may be acceptable in CI pipelines, ephemeral runners, or container tests where MITM risk bounded - user decides on network trust model.
 - `forks = 100+` without bumping `ulimit -n` and SSH `MaxSessions`.
-- `pipelining = True` where sudoers enforces `requiretty` — task fails with "sudo: sorry, you must have a tty".
+- `pipelining = True` where sudoers enforces `requiretty` - task fails with "sudo: sorry, you must have a tty".
 - Committing `vault_password_file` content. Path goes in cfg; file itself gitignored.
-- Mixing `roles_path` styles across team — pin in `ansible.cfg`, no reliance on `ANSIBLE_ROLES_PATH` env.
+- Mixing `roles_path` styles across team - pin in `ansible.cfg`, no reliance on `ANSIBLE_ROLES_PATH` env.
 
 ## Validation
 
-`ansible-config dump --only-changed` shows every value differing from defaults — use to audit project config drift.
+`ansible-config dump --only-changed` shows every value differing from defaults - use to audit project config drift.

@@ -13,7 +13,7 @@ Do **not** use vault for:
 - Public certificates.
 - Frequently rotating secrets → external secret manager.
 
-## Layout — separate `vars.yml` + `vault.yml`
+## Layout - separate `vars.yml` + `vault.yml`
 
 Only layout used here. No inline `!vault` blobs.
 
@@ -68,7 +68,7 @@ Script-based password (fetched from env var):
 
 ```bash
 #!/bin/bash
-# ~/.vault_pass.sh — chmod 700
+# ~/.vault_pass.sh - chmod 700
 echo "$VAULT_PASSWORD"
 ```
 
@@ -90,7 +90,7 @@ ansible-playbook playbook.yml \
 ## CI/CD integration
 
 ```bash
-# Generic CI pattern — works for GitHub Actions, GitLab CI, Jenkins, etc.
+# Generic CI pattern - works for GitHub Actions, GitLab CI, Jenkins, etc.
 echo "$VAULT_PASSWORD" > /tmp/vault_pass
 ansible-playbook playbook.yml --vault-password-file /tmp/vault_pass
 rm -f /tmp/vault_pass
@@ -112,7 +112,7 @@ Always add `no_log: true` on tasks consuming secrets.
 
 ## Rules
 
-1. Never commit `vault_pass*` files — add to `.gitignore`:
+1. Never commit `vault_pass*` files - add to `.gitignore`:
 
    ```text
    **/vault_pass*

@@ -6,10 +6,10 @@ Project pin all non-builtin collections in `requirements.yml`. Full docs:
 
 ## Rules
 
-1. **Always FQCN** (`namespace.collection.module`) — never bare module name or `collections:` keyword on play.
-2. **Pin in `requirements.yml`** — exact version (`"8.6.0"`) or minimum (`">=8.0.0"`). Never unpinned.
+1. **Always FQCN** (`namespace.collection.module`) - never bare module name or `collections:` keyword on play.
+2. **Pin in `requirements.yml`** - exact version (`"8.6.0"`) or minimum (`">=8.0.0"`). Never unpinned.
 3. **Declare collection deps in role meta** (`roles/<name>/meta/main.yml`) when role uses non-builtin modules.
-4. **Document Python deps** — many collections need extra pip packages; list in role/playbook README.
+4. **Document Python deps** - many collections need extra pip packages; list in role/playbook README.
 
 ## `requirements.yml` shape
 
@@ -43,7 +43,7 @@ collections:
   - ansible.posix
 ```
 
-## Popular collections — module catalog
+## Popular collections - module catalog
 
 LLM agents: do **not** invent module names. Verify with `ansible-doc -l <collection>`.
 
@@ -72,7 +72,7 @@ Do **not** invent module names. Verify: `ansible-doc -l <collection>`.
     ports: ["80:80"]
 ```
 
-## Custom collection — skeleton
+## Custom collection - skeleton
 
 Only when extracting in-repo modules into distributable package.
 

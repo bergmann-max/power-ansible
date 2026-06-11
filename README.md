@@ -66,6 +66,19 @@ Kiro loads this Power's MCP tools and steering files into context whenever your 
 ansible, playbook, role, handler, inventory, vault
 ```
 
+## Slash Commands
+
+This power ships 3 slash commands (manual trigger hooks), installed automatically on first power use via the onboarding in [POWER.md](POWER.md#onboarding):
+
+| Command | Steering file(s) | What it does |
+|---------|-------------------|-------------|
+| `/ansible-new-role` | `ansible-role-structure.md` | Scaffold a complete role directory |
+| `/ansible-new-playbook` | `ansible-playbook-workflow.md` | Scaffold a playbook with correct skeleton |
+| `/ansible-fix-lint` | `ansible-best-practices.md` | Auto-fix mechanical ansible-lint violations |
+
+
+See [POWER.md](POWER.md#onboarding) for details.
+
 ## Documentation
 
 See [POWER.md](POWER.md) for workflows, tool argument reference, and troubleshooting.

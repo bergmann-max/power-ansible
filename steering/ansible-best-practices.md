@@ -5,23 +5,23 @@ Project rules + `ansible-lint` violations `lint_file` tool surface. General Ansi
 
 ## Hard rules in this project
 
-1. **FQCN only** — every module call use `ansible.builtin.<name>` (or
+1. **FQCN only** - every module call use `ansible.builtin.<name>` (or
    `<collection>.<name>` non-builtin). Lint: `fqcn[action]`.
-2. **Mode is ugo, never octal** — `mode: 'u=rw,g=r,o=r'`, not `'0644'`. `o=`
+2. **Mode is ugo, never octal** - `mode: 'u=rw,g=r,o=r'`, not `'0644'`. `o=`
    mandatory even when others have no permissions (`mode: 'u=rw,g=r,o='`).
-3. **Pin versions** — `state: present` + pinned version, never
+3. **Pin versions** - `state: present` + pinned version, never
    `state: latest`. Lint: `package-latest`.
-4. **Every task has a name** — uppercase first char. Lint:
+4. **Every task has a name** - uppercase first char. Lint:
    `name[missing]`, `name[casing]`.
-5. **`command`/`shell` must use `cmd:` key** — no free-form args. Lint:
+5. **`command`/`shell` must use `cmd:` key** - no free-form args. Lint:
    `no-free-form`. Always set `changed_when:` (`false` for read-only).
    Lint: `no-changed-when`.
-6. **No implicit type coercion** — use Jinja filters (e.g. `to_json`) when
+6. **No implicit type coercion** - use Jinja filters (e.g. `to_json`) when
    passing dicts/lists. Lint: `avoid-implicit`.
-7. **Tags everywhere** — every task gets one+ tag for `--tags` filter.
-8. **Truthy literals** — `true`/`false` only, never `yes/no/True/False`.
+7. **Tags everywhere** - every task gets one+ tag for `--tags` filter.
+8. **Truthy literals** - `true`/`false` only, never `yes/no/True/False`.
    Lint: `yaml[truthy]`.
-9. **Role variable naming** — role vars prefixed with role name.
+9. **Role variable naming** - role vars prefixed with role name.
    Lint: `var-naming[no-role-prefix]`.
 
 ## Play skeleton
@@ -62,29 +62,29 @@ Project rules + `ansible-lint` violations `lint_file` tool surface. General Ansi
         state: restarted
 ```
 
-## Idempotency — the critical rule
+## Idempotency - the critical rule
 
 Every task must produce same outcome 2nd run as 1st. Use module state
 semantics (`state: present/absent`) or `creates:`/`removes:` on
 `command`/`shell`.
 
 ```yaml
-# GOOD Idempotent — package module
+# GOOD Idempotent - package module
 - name: Install nginx
   ansible.builtin.package: { name: nginx, state: present }
 
-# GOOD Idempotent — creates: marker
+# GOOD Idempotent - creates: marker
 - name: Download app archive
   ansible.builtin.command:
     cmd: wget https://example.com/app.tar.gz -O /opt/app.tar.gz
     creates: /opt/app.tar.gz
 
-# BAD Not idempotent — re-downloads every run
+# BAD Not idempotent - re-downloads every run
 - name: Download app archive
   ansible.builtin.command:
     cmd: wget https://example.com/app.tar.gz
 
-# BAD Not idempotent — keeps appending
+# BAD Not idempotent - keeps appending
 - name: Append config
   ansible.builtin.shell:
     cmd: echo "config=value" >> /etc/app.conf
@@ -104,7 +104,7 @@ Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_var
   register: result
   failed_when: "'ERROR' in result.stderr"
 
-# Read-only command — never marks changed
+# Read-only command - never marks changed
 - name: Check configuration
   ansible.builtin.command: { cmd: /usr/bin/check_config }
   register: config_check
@@ -125,7 +125,7 @@ Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_var
 
 ## Lint anti-patterns
 
-### `no-handler` — use `notify`, not `when: result.changed`
+### `no-handler` - use `notify`, not `when: result.changed`
 
 ```yaml
 # BAD
@@ -139,7 +139,7 @@ Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_var
   notify: Restart nginx
 ```
 
-### `partial-become` — `become_user` requires `become: true` at the same level
+### `partial-become` - `become_user` requires `become: true` at the same level
 
 ```yaml
 # GOOD
@@ -148,7 +148,7 @@ Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_var
   become_user: appuser
 ```
 
-### `risky-shell-pipe` — `set -o pipefail` when piping in `shell:`
+### `risky-shell-pipe` - `set -o pipefail` when piping in `shell:`
 
 ```yaml
 - ansible.builtin.shell:
@@ -159,7 +159,7 @@ Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_var
   changed_when: false
 ```
 
-### `no-log-password` — `no_log: true` when looping over secrets
+### `no-log-password` - `no_log: true` when looping over secrets
 
 ```yaml
 - ansible.builtin.user:
@@ -169,7 +169,7 @@ Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_var
   no_log: true
 ```
 
-### `avoid-implicit` — explicit Jinja for non-string values
+### `avoid-implicit` - explicit Jinja for non-string values
 
 ```yaml
 # BAD
@@ -184,7 +184,7 @@ Full spec: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_var
     dest: /tmp/config.json
 ```
 
-### `import-task-no-when` — `when:` on `import_tasks` is evaluated once
+### `import-task-no-when` - `when:` on `import_tasks` is evaluated once
 
 Use `include_tasks` when condition depends on runtime state.
 
@@ -199,7 +199,7 @@ Use `include_tasks` when condition depends on runtime state.
 - ansible.builtin.service: { name: nginx, state: restarted }
   when: config_result.changed
 
-# BAD shell-command-in-when — fragile and not declarative
+# BAD shell-command-in-when - fragile and not declarative
 - ansible.builtin.debug: { msg: "exists" }
   when: "{{ lookup('pipe', 'test -f /etc/nginx/nginx.conf') }}"
 ```
@@ -228,15 +228,15 @@ In roles, prefix loop variable to avoid collisions with outer loops
 ## Module choice
 
 Prefer `ansible.builtin.*` (copy, template, package, service, command, shell, systemd).
-`command`/`shell` only when no dedicated module exists — always `cmd:` + `changed_when:`.
+`command`/`shell` only when no dedicated module exists - always `cmd:` + `changed_when:`.
 Verify available modules: `ansible-doc -l`.
 
 ## Tag strategy
 
 Tags drive `--tags` / `--skip-tags`. Two special tags:
 
-- `always` — runs regardless of `--tags` filter.
-- `never` — runs only when explicitly listed in `--tags`.
+- `always` - runs regardless of `--tags` filter.
+- `never` - runs only when explicitly listed in `--tags`.
 
 ```yaml
 tasks:
@@ -267,7 +267,7 @@ Full pattern: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_
   become: true
   become_method: sudo
 
-# Per-task — both keys at the same level
+# Per-task - both keys at the same level
 - name: Start as app user
   ansible.builtin.service: { name: myapp, state: started }
   become: true
@@ -312,8 +312,8 @@ Full rule list: <https://docs.ansible.com/projects/lint/rules/>
 
 MCP tools enforce in order:
 
-1. `syntax_check` — fast structural check
-2. `lint_file` — production-profile rules (see above)
-3. `diff_check` — dry-run with `--check --diff`
+1. `syntax_check` - fast structural check
+2. `lint_file` - production-profile rules (see above)
+3. `diff_check` - dry-run with `--check --diff`
 
 Docs: <https://docs.ansible.com/projects/lint/rules/>

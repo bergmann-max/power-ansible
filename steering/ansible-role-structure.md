@@ -9,7 +9,7 @@ Full role layout spec:
 ```text
 roles/<role_name>/
 ├── tasks/
-│   ├── main.yml          # entry point — include_tasks the others
+│   ├── main.yml          # entry point - include_tasks the others
 │   ├── install.yml
 │   ├── configure.yml
 │   ├── debian.yml        # optional OS-specific
@@ -46,7 +46,7 @@ roles/<role_name>/
 | | `import_tasks` | `include_tasks` |
 |---|---|---|
 | Resolved | parse time (static) | runtime (dynamic) |
-| `when:` on directive | evaluated **once** — lint flags `import-task-no-when` | evaluated per-call |
+| `when:` on directive | evaluated **once** - lint flags `import-task-no-when` | evaluated per-call |
 | Tags visible to `--list-tags` | yes | no |
 | Use for | unconditional static includes | conditional / OS-specific loading |
 
@@ -56,11 +56,11 @@ roles/<role_name>/
   ansible.builtin.include_tasks: "{{ ansible_os_family | lower }}.yml"
   when: ansible_os_family is defined
 
-# GOOD import_tasks for unconditional static includes — tags work correctly
+# GOOD import_tasks for unconditional static includes - tags work correctly
 - name: Import hardening tasks
   ansible.builtin.import_tasks: hardening.yml
 
-# BAD import-task-no-when — when: applies only at parse time
+# BAD import-task-no-when - when: applies only at parse time
 - name: Import tasks conditionally
   ansible.builtin.import_tasks: optional.yml
   when: some_condition   # <- use include_tasks instead
@@ -69,7 +69,7 @@ roles/<role_name>/
 ## `changed_when` patterns
 
 ```yaml
-# Read-only — never marks changed
+# Read-only - never marks changed
 - name: Check app version
   ansible.builtin.command: { cmd: /usr/bin/myapp --version }
   register: app_version
@@ -83,7 +83,7 @@ roles/<role_name>/
   failed_when: migration.rc not in [0, 2]   # 2 = no-op
 ```
 
-## Variable naming — role prefix is mandatory
+## Variable naming - role prefix is mandatory
 
 ansible-lint `var-naming[no-role-prefix]` requires every role variable start with role name. No generic names (`port`, `enabled`, `package`).
 
@@ -94,7 +94,7 @@ install_nginx_conf_dir: /etc/nginx
 install_nginx_vhosts: []
 ```
 
-## Loop variables — prefix `__` or `<role>_`
+## Loop variables - prefix `__` or `<role>_`
 
 `item` collides in nested loops. Set `loop_control.loop_var` to prefixed name. `.ansible-lint` pattern: `loop_var_prefix: "^(__|{role}_)"`.
 
@@ -110,9 +110,9 @@ install_nginx_vhosts: []
     label: "{{ __nginx_vhost.name }}"
 ```
 
-## `defaults/main.yml` — comment every variable
+## `defaults/main.yml` - comment every variable
 
-Every var: short comment, role prefix, sensible default. List-typed vars get commented example below empty default — shape visible.
+Every var: short comment, role prefix, sensible default. List-typed vars get commented example below empty default - shape visible.
 
 ```yaml
 ---
@@ -134,7 +134,7 @@ my_role_vhosts: []
 #   - { name: example.com, port: 80, root: /var/www/example }
 ```
 
-## `vars/main.yml` — internal only
+## `vars/main.yml` - internal only
 
 ```yaml
 ---
@@ -159,7 +159,7 @@ Every `.j2` starts with:
 
 ## Handlers
 
-Use `listen:` — multiple notifiers trigger same handler.
+Use `listen:` - multiple notifiers trigger same handler.
 
 ```yaml
 # handlers/main.yml
@@ -173,7 +173,7 @@ Use `listen:` — multiple notifiers trigger same handler.
   listen: "Reload nginx"
 ```
 
-## `meta/main.yml` — dependencies
+## `meta/main.yml` - dependencies
 
 ```yaml
 ---

@@ -5,15 +5,15 @@ Ansible-specific filters/tests/lookups: <https://docs.ansible.com/ansible/latest
 
 ## Hard rules in this project
 
-1. **Quote every Jinja expression** — `"{{ var }}"`, not bare `{{ var }}` at
+1. **Quote every Jinja expression** - `"{{ var }}"`, not bare `{{ var }}` at
    value start. Lint: `jinja[invalid]`, `yaml[implicit-mapping]`.
-2. **Spaces inside braces** — `{{ var }}`, never `{{var}}`. Lint:
+2. **Spaces inside braces** - `{{ var }}`, never `{{var}}`. Lint:
    `jinja[spacing]`.
-3. **No bare-variable `when:`** — `when: foo` fine; `when: "{{ foo }}"`
+3. **No bare-variable `when:`** - `when: foo` fine; `when: "{{ foo }}"`
    not. Lint: `jinja[invalid]`, `no-jinja-when`.
-4. **`default` / `mandatory` for optional vs. required vars** — see Defaults
+4. **`default` / `mandatory` for optional vs. required vars** - see Defaults
    section for semantics, edge cases.
-5. **`to_json` / `to_yaml` for structured content** — never implicit
+5. **`to_json` / `to_yaml` for structured content** - never implicit
    stringification (see `avoid-implicit` in `ansible-best-practices.md`).
 
 ## Variable expression vs. statement
@@ -33,7 +33,7 @@ nginx_port: "{{ user_port | default(80) }}"
 # Optional, fall back to another var
 nginx_user: "{{ override_user | default(app_user) }}"
 
-# Required — fail render if undefined
+# Required - fail render if undefined
 nginx_root: "{{ webroot | mandatory('webroot must be set') }}"
 
 # Default only when var is undefined OR empty/false (second arg = true)
@@ -45,7 +45,7 @@ nginx_log_level: "{{ user_level | default('info', true) }}"
 Tests use `is`; filters use `|`. Mix them = most common Jinja bug.
 
 ```yaml
-# Tests — return bool
+# Tests - return bool
 - when: my_var is defined
 - when: my_var is not none
 - when: my_list is iterable
@@ -55,7 +55,7 @@ Tests use `is`; filters use `|`. Mix them = most common Jinja bug.
 - when: result is failed
 - when: result is skipped
 
-# Filters — transform value
+# Filters - transform value
 - "{{ my_list | length }}"
 - "{{ my_string | upper }}"
 - "{{ my_dict | combine(other_dict) }}"
@@ -69,9 +69,9 @@ Standard filters (`upper`, `trim`, `length`, `sort`, `replace`, `int`, `bool`,
 
 | Filter | Note |
 |---|---|
-| `mandatory('msg')` | Fail render if var undefined — use instead of silent default |
+| `mandatory('msg')` | Fail render if var undefined - use instead of silent default |
 | `combine(other, recursive=true)` | Deep merge dicts; without `recursive`, nested keys overwritten |
-| `map(attribute='k')` | Pluck attr from each dict; **always** `\| list` after — see anti-patterns |
+| `map(attribute='k')` | Pluck attr from each dict; **always** `\| list` after - see anti-patterns |
 
 ## Whitespace control
 
@@ -79,14 +79,14 @@ Jinja inserts newline for every `{% ... %}` block. Use `-` on side to trim.
 Critical for template files that must stay diff-clean.
 
 ```jinja
-{# Standard — leaves blank lines #}
+{# Standard - leaves blank lines #}
 {% for vhost in nginx_vhosts %}
 server {
   server_name {{ vhost.name }};
 }
 {% endfor %}
 
-{# Trimmed — no extra blanks #}
+{# Trimmed - no extra blanks #}
 {%- for vhost in nginx_vhosts %}
 server {
   server_name {{ vhost.name }};
@@ -103,7 +103,7 @@ Whitespace trimming is controlled per-template via module parameters (defaults: 
     dest: /etc/nginx/nginx.conf
     mode: 'u=rw,g=r,o=r'
     trim_blocks: true      # default true
-    lstrip_blocks: true    # default false — turn on for cleaner output
+    lstrip_blocks: true    # default false - turn on for cleaner output
 ```
 
 ## `selectattr` / `rejectattr` patterns
@@ -156,7 +156,7 @@ db_pw: "{{ lookup('password', '/tmp/db_pw chars=ascii_letters,digits length=24')
 ### Bare variable as YAML value
 
 ```yaml
-# BAD — YAML parses {{ var }} ambiguously, triggers jinja[invalid]
+# BAD - YAML parses {{ var }} ambiguously, triggers jinja[invalid]
 listen: {{ port }}
 
 # GOOD
@@ -166,7 +166,7 @@ listen: "{{ port }}"
 ### `when:` with Jinja delimiters
 
 ```yaml
-# BAD — when: already evaluates Jinja, double-render wrong
+# BAD - when: already evaluates Jinja, double-render wrong
 - ansible.builtin.debug: { msg: hi }
   when: "{{ enabled }}"
 
@@ -178,33 +178,33 @@ listen: "{{ port }}"
 ### Implicit truthiness on strings
 
 ```yaml
-# BAD — "false" (string) is truthy in Jinja
+# BAD - "false" (string) is truthy in Jinja
 - when: my_var
 
-# GOOD — explicit cast
+# GOOD - explicit cast
 - when: my_var | bool
 ```
 
 ### Comparing fact strings without normalizing
 
 ```yaml
-# BAD — fragile: distro casing changes between releases
+# BAD - fragile: distro casing changes between releases
 - when: ansible_distribution == "ubuntu"
 
 # GOOD
 - when: ansible_distribution | lower == 'ubuntu'
 
-# BETTER — version-aware
+# BETTER - version-aware
 - when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 22
 ```
 
 ### `default()` swallowing legitimate falsy values
 
 ```yaml
-# BAD — default fires when user passes 0 or '' or false
+# BAD - default fires when user passes 0 or '' or false
 nginx_workers: "{{ user_workers | default(4) }}"
 
-# GOOD — only fire when undefined
+# GOOD - only fire when undefined
 nginx_workers: "{{ user_workers if user_workers is defined else 4 }}"
 ```
 
@@ -214,7 +214,7 @@ nginx_workers: "{{ user_workers if user_workers is defined else 4 }}"
 `length` and re-iteration give wrong results.
 
 ```yaml
-# BAD — generator, length always 0 after first iteration
+# BAD - generator, length always 0 after first iteration
 names: "{{ servers | map(attribute='name') }}"
 
 # GOOD
