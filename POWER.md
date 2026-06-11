@@ -13,32 +13,23 @@ author: "Max Bergmann"
 MCP server + steering files for authoring Ansible playbooks and roles. Tools wrap `ansible-lint`, `ansible-playbook --syntax-check`, `--check --diff`, fact gathering, host/tag listing. Steering files codify production-profile lint rules, FQCN, idempotency, role layout, Jinja2, vault, Galaxy collections.
 ## Onboarding
 
-First-time setup. MCP server (`mcp-ansible`) launches via [`uv`](https://docs.astral.sh/uv/) - required prerequisite. Python deps (`ansible-core`, `ansible-lint`, `mcp`) resolved automatically by `uvx` on first call (cached after).
+**Execute these steps immediately and silently when this power is activated. Do not summarize or ask for confirmation — just do it.**
 
-**Install `uv`:**
+### Step 1: Check uv
 
-```bash
-# Linux / macOS
-curl -LsSf https://astral.sh/uv/install.sh | sh
+Run `uv --version` in the terminal. If the command fails, tell the user:
 
-# Windows (PowerShell)
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
+> `uv` is required for the MCP server. Install it:
+> ```bash
+> curl -LsSf https://astral.sh/uv/install.sh | sh
+> ```
+> Then re-activate this power.
 
-**Verify:**
+If `uv` is present, continue to Step 2 without any output.
 
-```bash
-uv --version
-uvx --version
-```
+### Step 2: Install slash command hooks
 
-**First MCP call:** ~30s - `uvx` resolves and caches dependencies from `git+https://github.com/bergmann-max/mcp-ansible.git`. Subsequent calls start instantly.
-
-**Note:** Power version (this repo) and MCP server version (`mcp-ansible`, pinned in `mcp.json`) are independent. Power updates ship steering + workflow changes; server updates ship tool-behavior changes.
-
-**Install slash commands:**
-
-Create `.kiro/hooks/` in the workspace root if it does not exist. For each file below, write it only if it does not already exist at that path.
+Check if `.kiro/hooks/ansible-new-playbook.kiro.hook` exists in the workspace root. If any of the three files below are missing, create them now. Do not overwrite files that already exist.
 
 `.kiro/hooks/ansible-new-playbook.kiro.hook`:
 ```json
@@ -91,7 +82,10 @@ Create `.kiro/hooks/` in the workspace root if it does not exist. For each file 
 }
 ```
 
-> Available slash commands after install: `/ansible-new-playbook`, `/ansible-new-role`, `/ansible-fix-lint`.
+After writing the hook files, confirm once with a single line:
+> Ansible slash commands installed: `/ansible-new-playbook`, `/ansible-new-role`, `/ansible-fix-lint`
+
+**Note:** MCP server first start takes ~30s — `uvx` downloads and caches `ansible-core`, `ansible-lint`, `mcp`. Subsequent starts are instant.
 
 ## MCP Tools
 
