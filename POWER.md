@@ -55,14 +55,11 @@ Check if `.kiro/hooks/ansible-new-playbook.kiro.hook` exists in the workspace ro
   "name": "ansible-new-role",
   "description": "Scaffold a new Ansible role with real tasks + full directory layout",
   "version": "2",
-  "description": "Scaffold a new Ansible role with real tasks + full directory layout",
-  "version": "2",
   "when": {
     "type": "userTriggered"
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Create a new Ansible role. Do NOT open steering or feature-planning mode - just execute these steps directly:\n\n1. Ask for the role name (slug, e.g. \"install_nginx\").\n2. Ask what the role should do concretely:\n   - What does it manage? (package, service, config, firewall rule, cron job, etc.)\n   - Which OS families? (Debian, RedHat, both?)\n   - What tasks? List each step: module, key params, templates/files, services to restart.\n   - What variables? (ports, paths, users, package versions - role-prefixed mandatory)\n3. Read the file 'steering/ansible-role-structure.md' from this power's directory for the\n   directory layout, file skeletons, and conventions.\n4. Create the complete directory structure:\n   roles/<name>/tasks/main.yml\n   roles/<name>/tasks/install.yml\n   roles/<name>/tasks/configure.yml\n   roles/<name>/handlers/main.yml\n   roles/<name>/defaults/main.yml\n   roles/<name>/vars/main.yml\n   roles/<name>/meta/main.yml\n   roles/<name>/README.md\n   roles/<name>/templates/.gitkeep\n   roles/<name>/files/.gitkeep\n5. Populate every file following the steering file patterns, filled with the user's concrete details:\n   - tasks/main.yml: include_tasks orchestration (install.yml, configure.yml),\n     OS-detection include_vars\n   - tasks/install.yml: package tasks from user's description\n   - tasks/configure.yml: template/copy tasks, service enable/start\n   - handlers/main.yml: restart/reload handlers with listen:\n   - defaults/main.yml: every var commented, role-prefixed, sensible default\n   - vars/main.yml: internal __-prefixed vars (OS-specific package names, service names)\n   - meta/main.yml: galaxy_info stub, dependencies, collections, min_ansible_version\n   - README.md: description, requirements, variable table, example playbook\n   - NO \"Example task\" placeholders anywhere.\n6. Run `syntax_check` on roles/<name>/tasks/main.yml. Fix any errors.\n7. Run `lint_file` with profile='production' on the role directory. Fix all violations.\n8. Print summary: path, files created, variables in defaults, OS support, lint status, next step."
     "prompt": "Create a new Ansible role. Do NOT open steering or feature-planning mode - just execute these steps directly:\n\n1. Ask for the role name (slug, e.g. \"install_nginx\").\n2. Ask what the role should do concretely:\n   - What does it manage? (package, service, config, firewall rule, cron job, etc.)\n   - Which OS families? (Debian, RedHat, both?)\n   - What tasks? List each step: module, key params, templates/files, services to restart.\n   - What variables? (ports, paths, users, package versions - role-prefixed mandatory)\n3. Read the file 'steering/ansible-role-structure.md' from this power's directory for the\n   directory layout, file skeletons, and conventions.\n4. Create the complete directory structure:\n   roles/<name>/tasks/main.yml\n   roles/<name>/tasks/install.yml\n   roles/<name>/tasks/configure.yml\n   roles/<name>/handlers/main.yml\n   roles/<name>/defaults/main.yml\n   roles/<name>/vars/main.yml\n   roles/<name>/meta/main.yml\n   roles/<name>/README.md\n   roles/<name>/templates/.gitkeep\n   roles/<name>/files/.gitkeep\n5. Populate every file following the steering file patterns, filled with the user's concrete details:\n   - tasks/main.yml: include_tasks orchestration (install.yml, configure.yml),\n     OS-detection include_vars\n   - tasks/install.yml: package tasks from user's description\n   - tasks/configure.yml: template/copy tasks, service enable/start\n   - handlers/main.yml: restart/reload handlers with listen:\n   - defaults/main.yml: every var commented, role-prefixed, sensible default\n   - vars/main.yml: internal __-prefixed vars (OS-specific package names, service names)\n   - meta/main.yml: galaxy_info stub, dependencies, collections, min_ansible_version\n   - README.md: description, requirements, variable table, example playbook\n   - NO \"Example task\" placeholders anywhere.\n6. Run `syntax_check` on roles/<name>/tasks/main.yml. Fix any errors.\n7. Run `lint_file` with profile='production' on the role directory. Fix all violations.\n8. Print summary: path, files created, variables in defaults, OS support, lint status, next step."
   }
 }
@@ -298,18 +295,6 @@ Load on demand per task - do not preload all.
    - `templates/.gitkeep`, `files/.gitkeep`
 4. `syntax_check` on tasks/main.yml → `lint_file` on role dir → fix violations.
 5. Report: path, files created, variables defined, OS support, lint status.
-1. Ask: name + what it should do (OS, tasks, vars).
-2. Load `ansible-role-structure.md` for layout + file skeletons.
-3. Create directory scaffold + populate all files with real content:
-   - `tasks/main.yml` (orchestration), `tasks/install.yml`, `tasks/configure.yml`
-   - `handlers/main.yml` (with `listen:`)
-   - `defaults/main.yml` (commented, role-prefixed vars)
-   - `vars/main.yml` (internal `__`-prefixed vars)
-   - `meta/main.yml` (galaxy_info, dependencies, collections)
-   - `README.md` (description, requirements, variable table, example)
-   - `templates/.gitkeep`, `files/.gitkeep`
-4. `syntax_check` on tasks/main.yml → `lint_file` on role dir → fix violations.
-5. Report: path, files created, variables defined, OS support, lint status.
 
 ### Updating an existing Playbook
 
@@ -370,8 +355,6 @@ Load on demand per task - do not preload all.
 
 1. Write `inventory/hosts.yml` (or `hosts.ini`) via file tools.
 2. Follow `ansible-inventory.md` (groups, group_vars, host_vars).
-3. Write `group_vars/all.yml` + per-group `group_vars/<group>.yml`.
-4. Verify: `list_hosts` on any playbook.
 3. Write `group_vars/all.yml` + per-group `group_vars/<group>.yml`.
 4. Verify: `list_hosts` on any playbook.
 
